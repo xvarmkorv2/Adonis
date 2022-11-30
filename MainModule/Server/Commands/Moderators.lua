@@ -561,7 +561,7 @@ return function(Vargs, env)
 					--// For fake players
 					local fake_data
 					if service.Wrapped(v) then
-						fake_data = {UserId = v.UserId, Nmae = v.Name}
+						fake_data = {UserId = v.UserId, Name = v.Name}
 					end
 
 					Remote.MakeGui(plr, "List", {
@@ -872,7 +872,7 @@ return function(Vargs, env)
 						for _, prop in DescsToRemove do
 							humanoidDesc[prop] = ""
 						end
-						humanoid:ApplyDescription(humanoidDesc)
+						humanoid:ApplyDescription(humanoidDesc, Enum.AssetTypeVerification.Always)
 					end
 				end
 			end
@@ -2786,57 +2786,61 @@ return function(Vargs, env)
 		};
 
 		Track = {
-			Prefix = Settings.Prefix;
-			Commands = {"track", "trace", "find", "locate"};
-			Args = {"player", "persistent? (default: false)"};
-			Description = "Shows you where the target player(s) is/are";
-			AdminLevel = "Moderators";
-			Function = function(plr: Player, args: {string})
+			Prefix = Settings.Prefix,
+			Commands = {"track", "trace", "find", "locate"},
+			Args = {"player", "persistent? (default: false)"},
+			Description = "Shows you where the target player(s) is/are",
+			AdminLevel = "Moderators",
+			Function = function(plr: Player, args: { string })
 				local plrChar = assert(plr.Character, "You don't have a character")
 				local plrHum = assert(plrChar:FindFirstChildOfClass("Humanoid", "You don't have a humanoid"))
 
 				local persistent = args[2] and (args[2]:lower() == "true" or args[2]:lower() == "yes")
-				if persistent and not Variables.TrackingTable[plr.Name] then
-					table.clear(Variables.TrackingTable[plr.Name])
+				if persistent and type(Variables.TrackingTable[plr.Name]) ~= "table" then
+					Variables.TrackingTable[plr.Name] = {}
 				end
 
-				for _, v in service.GetPlayers(plr, args[1]) do
-					if persistent then
+				for _, v: Player in service.GetPlayers(plr, args[1]) do
+					if persistent and Variables.TrackingTable[plr.Name] then
 						Variables.TrackingTable[plr.Name][v] = true
 					end
+
 					local char = v.Character
 					if not char then
-						Functions.Hint(service.FormatPlayer(v).." doesn't currently have a character", {plr})
+						Functions.Hint(service.FormatPlayer(v) .. " doesn't currently have a character", { plr })
 						continue
 					end
+
 					local rootPart = char:FindFirstChild("HumanoidRootPart")
 					local head = char:FindFirstChild("Head")
+
 					if not (rootPart and head) then
-						Functions.Hint(service.FormatPlayer(v).." doesn't currently have a HumanoidRootPart/Head", {plr})
+						Functions.Hint(service.FormatPlayer(v) .. " doesn't currently have a HumanoidRootPart/Head", { plr })
 						continue
 					end
+
 					task.defer(function()
 						local gui = service.New("BillboardGui", {
-							Name = v.Name.."Tracker",
+							Name = v.Name .. "_Tracker",
 							Adornee = head,
 							AlwaysOnTop = true,
 							StudsOffset = Vector3.new(0, 2, 0),
-							Size = UDim2.fromOffset(100, 40)
+							Size = UDim2.fromOffset(100, 40),
 						})
 						local beam = service.New("SelectionPartLasso", {
 							Parent = gui,
 							Part = rootPart,
 							Humanoid = plrHum,
-							Color3 = v.TeamColor.Color
+							Color3 = v.TeamColor.Color,
 						})
 						local frame = service.New("Frame", {
 							Parent = gui,
 							BackgroundTransparency = 1,
-							Size = UDim2.fromScale(1, 1)
+							Size = UDim2.fromScale(1, 1),
 						})
 						local name = service.New("TextLabel", {
 							Parent = frame,
-							Text = if v.Name == v.DisplayName then "@"..v.Name else v.DisplayName.."\n(@"..v.Name..")",
+							Text = service.FormatPlayer(v),
 							BackgroundTransparency = 1,
 							Font = Enum.Font.Arial,
 							TextColor3 = Color3.new(1, 1, 1),
@@ -2844,8 +2848,9 @@ return function(Vargs, env)
 							TextStrokeTransparency = 0,
 							Size = UDim2.new(1, 0, 0, 20),
 							TextScaled = true,
-							TextWrapped = true
+							TextWrapped = true,
 						})
+
 						local arrow = name:Clone()
 						arrow.Position = UDim2.fromOffset(0, 20)
 						arrow.Text = "v"
@@ -2853,23 +2858,25 @@ return function(Vargs, env)
 
 						Remote.MakeLocal(plr, gui, false)
 
+						local charRemovingConn
 						local teamChangeConn = v:GetPropertyChangedSignal("TeamColor"):Connect(function()
 							beam.Color3 = v.TeamColor.Color
 						end)
-						local charRemovingConn
 						local plrCharRemovingConn = plr.CharacterRemoving:Once(function()
-							Remote.RemoveLocal(plr, v.Name.."Tracker")
+							Remote.RemoveLocal(plr, v.Name .. "Tracker")
 							teamChangeConn:Disconnect()
-							if charRemovingConn then charRemovingConn:Disconnect() end
+							if charRemovingConn then
+								charRemovingConn:Disconnect()
+							end
 						end)
 						charRemovingConn = v.CharacterRemoving:Once(function()
-							Remote.RemoveLocal(plr, v.Name.."Tracker")
+							Remote.RemoveLocal(plr, v.Name .. "Tracker")
 							teamChangeConn:Disconnect()
 							plrCharRemovingConn:Disconnect()
 						end)
 					end)
 				end
-			end
+			end,
 		};
 
 		UnTrack = {
@@ -2880,8 +2887,8 @@ return function(Vargs, env)
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
 				if args[1] and args[1]:lower() == Settings.SpecialPrefix.."all" then
-					Remote.RemoveLocal(plr, "Tracker", false, true)
 					Variables.TrackingTable[plr.Name] = nil
+					Remote.RemoveLocal(plr, "Tracker", false, true)
 				else
 					local trackTargets = Variables.TrackingTable[plr.Name]
 					for _, v in service.GetPlayers(plr, args[1]) do
@@ -2915,8 +2922,10 @@ return function(Vargs, env)
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
 				for _, v in service.GetPlayers(plr, args[1]) do
-					Remote.MoveLocal(v, v.Character.Name, false, workspace)
-					v.Character.Parent = workspace
+					if v.Character then
+						Remote.MoveLocal(v, v.Character.Name, false, workspace)
+						v.Character.Parent = workspace
+					end
 				end
 			end
 		};
@@ -3035,7 +3044,7 @@ return function(Vargs, env)
 
 				assert(target_character, "Target player doesn't have a character or has a locked character")
 
-				local target_humandescrip = target and target.Character:FindFirstChildOfClass("Humanoid") and target.Character:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass"HumanoidDescription"
+				local target_humandescrip = target and target.Character:FindFirstChildOfClass("Humanoid") and target.Character:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("HumanoidDescription")
 
 				assert(target_humandescrip, "Target player doesn't have a HumanoidDescription or has a locked HumanoidDescription [Cannot copy target's character]")
 
@@ -3044,7 +3053,7 @@ return function(Vargs, env)
 
 				for _, v in service.GetPlayers(plr, args[1]) do
 					Routine(function()
-						if (v and v.Character and v.Character:FindFirstChildOfClass("Humanoid")) and (target and target.Character and target.Character:FindFirstChildOfClass"Humanoid") then
+						if (v and v.Character and v.Character:FindFirstChildOfClass("Humanoid")) and (target and target.Character and target.Character:FindFirstChildOfClass("Humanoid")) then
 							v.Character.Archivable = true
 
 							for _, a in v.Character:GetChildren() do
@@ -3055,7 +3064,7 @@ return function(Vargs, env)
 
 							local cl = target_humandescrip:Clone()
 							cl.Parent = v.Character:FindFirstChildOfClass("Humanoid")
-							pcall(function() v.Character:FindFirstChildOfClass("Humanoid"):ApplyDescription(cl) end)
+							pcall(function() v.Character:FindFirstChildOfClass("Humanoid"):ApplyDescription(cl, Enum.AssetTypeVerification.Always) end)
 
 							for _, a in target_character:GetChildren() do
 								if a:IsA("Accessory") then
@@ -3767,7 +3776,7 @@ return function(Vargs, env)
 							humanoidDesc[property] = color
 						end
 
-						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc)
+						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc, Enum.AssetTypeVerification.Always)
 					end
 				end
 			end
@@ -4709,11 +4718,18 @@ return function(Vargs, env)
 					for i = (l-1) * math.floor(numPlayers/lines) + 1, l * math.floor(numPlayers/lines) do
 						local char = players[i].Character
 						if not char then continue end
-
+						
 						local hum = char:FindFirstChildOfClass("Humanoid")
 						if hum then
-							hum.Jump = true
+							if hum.SeatPart then
+								Functions.RemoveSeatWelds(hum.SeatPart)
+							end
+							if hum.Sit then
+								hum.Sit = false
+								hum.Jump = true
+							end
 						end
+						
 						task.wait()
 
 						local rootPart = char:FindFirstChild("HumanoidRootPart")
@@ -4901,7 +4917,7 @@ return function(Vargs, env)
 									local humDescClone = humanoidAppliedDesc:Clone()
 
 									humDescClone.GraphicTShirt = 6901238398 -- Some template shirt graphic
-									v.Character.Humanoid:ApplyDescription(humDescClone)
+									v.Character.Humanoid:ApplyDescription(humDescClone, Enum.AssetTypeVerification.Always)
 									humDescClone:Destroy()
 								end
 
@@ -4979,7 +4995,7 @@ return function(Vargs, env)
 
 									-- Default Shirt ID 855777286, given when no valid shirt was set with HumanoidDescription
 									humDescClone.Shirt = 855777286 -- Default shirt TODO: You want to change this because the ID put here can't be given with the command if already ran.
-									v.Character.Humanoid:ApplyDescription(humDescClone)
+									v.Character.Humanoid:ApplyDescription(humDescClone, Enum.AssetTypeVerification.Always)
 									humDescClone:Destroy()
 								end
 
@@ -5057,7 +5073,7 @@ return function(Vargs, env)
 
 									-- Default Pants ID 855782781, given when no valid pants was set with HumanoidDescription
 									humDescClone.Pants = 855782781 -- Default pants
-									v.Character.Humanoid:ApplyDescription(humDescClone)
+									v.Character.Humanoid:ApplyDescription(humDescClone, Enum.AssetTypeVerification.Always)
 									humDescClone:Destroy()
 								end
 
@@ -5207,7 +5223,7 @@ return function(Vargs, env)
 							error("Item not supported")
 						end
 
-						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc)
+						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc, Enum.AssetTypeVerification.Always)
 					end
 				end
 			end
@@ -5226,7 +5242,7 @@ return function(Vargs, env)
 						if humanoid then
 							local humanoidDesc: HumanoidDescription = humanoid:GetAppliedDescription()
 							humanoidDesc.GraphicTShirt = 0
-							task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc)
+							task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc, Enum.AssetTypeVerification.Always)
 						end
 					end
 				end
@@ -5245,7 +5261,7 @@ return function(Vargs, env)
 					if humanoid then
 						local humanoidDesc: HumanoidDescription = humanoid:GetAppliedDescription()
 						humanoidDesc.Shirt = 0
-						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc)
+						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc, Enum.AssetTypeVerification.Always)
 					end
 				end
 			end
@@ -5263,7 +5279,7 @@ return function(Vargs, env)
 					if humanoid then
 						local humanoidDesc: HumanoidDescription = humanoid:GetAppliedDescription()
 						humanoidDesc.Pants = 0
-						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc)
+						task.defer(humanoid.ApplyDescription, humanoid, humanoidDesc, Enum.AssetTypeVerification.Always)
 					end
 				end
 			end
@@ -6106,7 +6122,7 @@ return function(Vargs, env)
 								end
 							end
 
-							humanoid:ApplyDescription(newDescription)
+							humanoid:ApplyDescription(newDescription, Enum.AssetTypeVerification.Always)
 						end
 					end
 				end
@@ -6132,7 +6148,7 @@ return function(Vargs, env)
 							v.CharacterAppearanceId = target
 
 							if v.Character and v.Character:FindFirstChildOfClass("Humanoid") then
-								v.Character.Humanoid:ApplyDescription(desc)
+								v.Character.Humanoid:ApplyDescription(desc, Enum.AssetTypeVerification.Always)
 							end
 						end
 					else
@@ -6159,7 +6175,7 @@ return function(Vargs, env)
 							local success, desc = pcall(service.Players.GetHumanoidDescriptionFromUserId, service.Players, v.UserId)
 
 							if success then
-								Humanoid:ApplyDescription(desc)
+								Humanoid:ApplyDescription(desc, Enum.AssetTypeVerification.Always)
 							end
 						end
 					end)
@@ -6650,13 +6666,19 @@ return function(Vargs, env)
 			Description = "AI bots made for training; ':bot scel 5 true true'";
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
-				local num = tonumber(args[2]) and math.max(tonumber(args[2]), 50) or 1
+				local num = tonumber(args[2]) and math.min(tonumber(args[2]), 50) or 1
 				local health = tonumber(args[6]) or 100
 				local speed = tonumber(args[7]) or 16
 				local damage = tonumber(args[8]) or 5
-				local walk = args[3] == "false" and false or true
 				local attack = args[4] == "true" and true or false
 				local friendly = args[5] == "true" and true or false
+				local walk
+				
+				if args[3] == "false" then
+					walk = false
+				else
+					walk = true
+				end
 
 				for _, v in service.GetPlayers(plr, args[1]) do
 					Functions.makeRobot(v, num, health, speed, damage, walk, attack, friendly)

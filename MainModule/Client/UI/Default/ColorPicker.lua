@@ -189,7 +189,7 @@ return function(data, env)
 	window:Ready()
 	
 	repeat
-		wait()
+		task.wait()
 	until returnColor or not gTable.Active
 	
 	return returnColor
