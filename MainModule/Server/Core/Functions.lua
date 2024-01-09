@@ -6,8 +6,6 @@ return function(Vargs, GetEnv)
 	local server = Vargs.Server
 	local service = Vargs.Service
 
-	local cPcall = env.cPcall
-
 	local logError
 	local Functions, Admin, Anti, Core, HTTP, Logs, Remote, Process, Variables, Settings
 	local function Init()
@@ -28,11 +26,6 @@ return function(Vargs, GetEnv)
 	end;
 
 	local function RunAfterPlugins(data)
-		--// AutoClean
-		if Settings.AutoClean then
-			service.StartLoop("AUTO_CLEAN", Settings.AutoCleanDelay, Functions.CleanWorkspace, true)
-		end
-
 		Functions.RunAfterPlugins = nil
 		Logs:AddLog("Script", "Functions Module RunAfterPlugins Finished")
 	end
@@ -45,7 +38,7 @@ return function(Vargs, GetEnv)
 				Match = "me";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					table.insert(players, plr)
 					plus()
 				end;
@@ -55,7 +48,7 @@ return function(Vargs, GetEnv)
 				Match = "all";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local everyone = true
 					if isKicking then
 						local lower = string.lower
@@ -96,7 +89,7 @@ return function(Vargs, GetEnv)
 				Match = "others";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					for _,v in parent:GetChildren() do
 						local p = getplr(v)
 						if p and p ~= plr then
@@ -111,7 +104,7 @@ return function(Vargs, GetEnv)
 				Match = "random";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					table.insert(randplayers, "random")
 					plus()
 				end;
@@ -121,7 +114,7 @@ return function(Vargs, GetEnv)
 				Match = "admins";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					for _,v in parent:GetChildren() do
 						local p = getplr(v)
 						if p and Admin.CheckAdmin(p,false) then
@@ -136,7 +129,7 @@ return function(Vargs, GetEnv)
 				Match = "nonadmins";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					for _,v in parent:GetChildren() do
 						local p = getplr(v)
 						if p and not Admin.CheckAdmin(p,false) then
@@ -151,7 +144,7 @@ return function(Vargs, GetEnv)
 				Match = "friends";
 				Prefix = true;
 				Absolute = true;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					for _,v in parent:GetChildren() do
 						local p = getplr(v)
 						if p and p:IsFriendsWith(plr.UserId) then
@@ -165,7 +158,7 @@ return function(Vargs, GetEnv)
 			["@username"] = {
 				Match = "@";
 				Prefix = false;
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "@(.*)")
 					local foundNum = 0
 
@@ -184,7 +177,7 @@ return function(Vargs, GetEnv)
 
 			["%team"] = {
 				Match = "%";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "%%(.*)")
 
 					local lower = string.lower
@@ -208,7 +201,7 @@ return function(Vargs, GetEnv)
 
 			["$group"] = {
 				Match = "$";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "%$(.*)")
 					if matched and tonumber(matched) then
 						for _,v in parent:GetChildren() do
@@ -224,7 +217,7 @@ return function(Vargs, GetEnv)
 
 			["id-"] = {
 				Match = "id-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = tonumber(string.match(msg, "id%-(.*)"))
 					local foundNum = 0
 					if matched then
@@ -236,7 +229,7 @@ return function(Vargs, GetEnv)
 								foundNum += 1
 							end
 						end
-
+						
 						if foundNum == 0 and useFakePlayer then
 							local ran, name = pcall(service.Players.GetNameFromUserIdAsync, service.Players, matched)
 							if ran or allowUnknownUsers then
@@ -254,7 +247,7 @@ return function(Vargs, GetEnv)
 
 			["displayname-"] = {
 				Match = "displayname-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = tonumber(string.match(msg, "displayname%-(.*)"))
 					local foundNum = 0
 
@@ -273,7 +266,7 @@ return function(Vargs, GetEnv)
 
 			["team-"] = {
 				Match = "team-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local lower = string.lower
 					local sub = string.sub
 
@@ -296,7 +289,7 @@ return function(Vargs, GetEnv)
 
 			["group-"] = {
 				Match = "group-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "group%-(.*)")
 					matched = tonumber(matched)
 
@@ -314,7 +307,7 @@ return function(Vargs, GetEnv)
 
 			["-name"] = {
 				Match = "-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "%-(.*)")
 					if matched then
 						local removes = service.GetPlayers(plr,matched, {
@@ -330,10 +323,10 @@ return function(Vargs, GetEnv)
 					end
 				end;
 			};
-			
+
 			["+name"] = {
 				Match = "+";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = string.match(msg, "%+(.*)")
 					if matched then
 						local adds = service.GetPlayers(plr,matched, {
@@ -349,7 +342,7 @@ return function(Vargs, GetEnv)
 					end
 				end;
 			};
-			
+
 			["#number"] = {
 				Match = "#";
 				Function = function(msg, plr, ...)
@@ -370,7 +363,7 @@ return function(Vargs, GetEnv)
 
 			["radius-"] = {
 				Match = "radius-";
-				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, useFakePlayer, allowUnknownUsers)
+				Function = function(msg, plr, parent, players, delplayers, addplayers, randplayers, getplr, plus, isKicking, isServer, dontError, useFakePlayer, allowUnknownUsers)
 					local matched = msg:match("radius%-(.*)")
 					if matched and tonumber(matched) then
 						local num = tonumber(matched)
@@ -381,7 +374,10 @@ return function(Vargs, GetEnv)
 
 						for _,v in parent:GetChildren() do
 							local p = getplr(v)
-							if p and p ~= plr and plr:DistanceFromCharacter(p.Character.Head.Position) <= num then
+							local character = p.Character
+							local Head = character and character:FindFirstChild("Head")
+							
+							if Head and p and p ~= plr and plr:DistanceFromCharacter(Head.Position) <= num then
 								table.insert(players,p)
 								plus()
 							end
@@ -451,9 +447,10 @@ return function(Vargs, GetEnv)
 			return fakePlayer
 		end;
 
-		GetChatService = function()
-			local chatHandler = service.ServerScriptService:WaitForChild("ChatServiceRunner", 120)
-			local chatMod = chatHandler and chatHandler:WaitForChild("ChatService", 120)
+		GetChatService = function(waitTime)
+			local isTextChat = service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService
+			local chatHandler = service.ServerScriptService:WaitForChild("ChatServiceRunner", waitTime or isTextChat and 0.2 or 145)
+			local chatMod = chatHandler and chatHandler:WaitForChild("ChatService", waitTime or isTextChat and 0.2 or 145)
 
 			if chatMod then
 				return require(chatMod)
@@ -461,21 +458,12 @@ return function(Vargs, GetEnv)
 			return nil
 		end;
 
-		IsClass = function(obj, classList)
-			for _,class in classList do
-				if obj:IsA(class) then
-					return true
-				end
-			end
-			return false
-		end;
-
 		ArgsToString = function(args)
 			local str = ""
 			for i, arg in args do
-				str ..= "Arg"..tostring(i)..": "..tostring(arg).."; "
+				str ..= `Arg{i}: {arg}; `
 			end
-			return str:sub(1, -3)
+			return string.sub(str, 1, -3)
 		end;
 
 		GetPlayers = function(plr, argument, options)
@@ -535,7 +523,7 @@ return function(Vargs, GetEnv)
 				return {plr}
 			else
 				if argument:match("^##") then
-					error("String passed to GetPlayers is filtered: ".. tostring(argument), 2)
+					error(`String passed to GetPlayers is filtered: {argument}`, 2)
 				end
 
 				for s in argument:gmatch("([^,]+)") do
@@ -568,7 +556,7 @@ return function(Vargs, GetEnv)
 						--// Check for display names
 						for _, v in parent:GetChildren() do
 							local p = getplr(v)
-							if p and p.ClassName == "Player" and p.DisplayName:lower():match("^"..s) then
+							if p and p.ClassName == "Player" and p.DisplayName:lower():match(`^{s:lower()}`) then
 								table.insert(players, p)
 								plus()
 							end
@@ -578,7 +566,7 @@ return function(Vargs, GetEnv)
 							--// Check for usernames
 							for _, v in parent:GetChildren() do
 								local p = getplr(v)
-								if p and p.ClassName == "Player" and p.Name:lower():match("^"..s) then
+								if p and p.ClassName == "Player" and p.Name:lower():match(`^{s:lower()}`) then
 									table.insert(players, p)
 									plus()
 								end
@@ -593,7 +581,7 @@ return function(Vargs, GetEnv)
 										table.insert(players, Functions.GetFakePlayer({
 											Name = s;
 											DisplayName = s;
-											UserId = UserId or -1;
+											UserId = if UserId then UserId else -1;
 										}))
 										plus()
 									end
@@ -601,8 +589,8 @@ return function(Vargs, GetEnv)
 
 								if plrCount == 0 and not options.DontError then
 									Remote.MakeGui(plr, "Output", {
-										Message = if not options.NoFakePlayer then "No user named '"..s.."' exists"
-											else "No players matching '"..s.."' were found!";
+										Message = if not options.NoFakePlayer then `No user named '{s}' exists`
+											else `No players matching '{s}' were found!`;
 									})
 								end
 							end
@@ -614,7 +602,7 @@ return function(Vargs, GetEnv)
 			--// The following is intended to prevent name spamming (eg. :re scel,scel,scel,scel,scel,scel,scel,scel,scel,scel,scel,scel,scel,scel...)
 			--// It will also prevent situations where a player falls within multiple player finders (eg. :re group-1928483,nonadmins,radius-50 (one player can match all 3 of these))
 			--// Edited to adjust removals and randomizers.
-			
+
 			local filteredList = {}
 			local checkList = {}
 
@@ -715,61 +703,6 @@ return function(Vargs, GetEnv)
 			return finalFilteredList
 		end;
 
-		GetRandom = function(pLen)
-			--local str = ""
-			--for i=1,math.random(5,10) do str=str..string.char(math.random(33,90)) end
-			--return str
-
-			local random = math.random
-			local format = string.format
-
-			local res = {}
-			for i = 1, if type(pLen) == "number" then pLen else random(5, 10) do
-				res[i] = format("%02x", random(126))
-			end
-			return table.concat(res)
-		end;
-
-
-		AdonisEncrypt = function(key)
-			local ae_info = {
-				version = "1";
-				ver_codename = "aencrypt_xorB64";
-				ver_full = "v1_AdonisEncrypt";
-			}
-
-			--return "adonis:enc;;"..ver..";;"..Base64Encode(string.char(unpack(t)))
-			return {
-				encrypt = function(data)
-					-- Add as many layers of encryption that are useful, even a basic cipher that throws exploiters off the actual encrypted data is accepted.
-					-- What could count: XOR, Base64, Simple Encryption, A Cipher to cover the encryption, etc.
-					-- What would be too complex: AES-256 CTR-Mode, Base91, PGP/Pretty Good Privacy
-
-					-- TO:DO; - Script XOR + Custom Encryption Backend, multiple security measures, if multiple encryption layers are used,
-					--          manipulate the key as much as possible;
-					--
-					--        - Create Custom Lightweight Encoding + Cipher format, custom B64 Alphabet, etc.
-					--          'ADONIS+HUJKLMSBP13579VWXYZadonis/hujklmsbp24680vwxyz><_*+-?!&@%#'
-					--
-					--        - A basic form of string compression before encrypting should be used
-					--          If this becomes really nice, find a way to convert old datastore saved data to this new format.
-					--
-					--        ? This new format has an URI-Like structure to provide correct versioning and easy migrating between formats
-
-					--[[ INSERT ALREADY USED ADONIS "ENCRYPTION" HERE ]]
-					--[[ INSERT BIT32 BITWISE XOR OPERAND HERE]]
-					--[[ INSERT ROT47 CIPHER HERE ]]
-					--[[ INSERT CUSTOM ADONIS BASE64 ENCODING HERE ]]
-					--[[ CONVERT EVERYTHING TO AN URI WITH VERSIONING AND INFORMATION ]]
-
-				end;
-
-				decrypt = function(data)
-
-				end;
-			}
-		end;
-
 		-- ROT 47: ROT13 BUT BETTER
 		Rot47Cipher = function(data,mode)
 			if not (mode == "enc" or mode == "dec") then error("Invalid ROT47 Cipher Mode") end
@@ -794,135 +727,196 @@ return function(Vargs, GetEnv)
 			if mode == "dec" then return cipher(data,-47) end
 		end;
 
-		-- CUSTOM BASE64 ALPHABET ENCODING
-		Base64_A_Decode = function(data)
-			local sub = string.sub
-			local gsub = string.gsub
-			local find = string.find
+		-- Thanks to Tiffany352 for this base64 implementation!
+
+		Base64Encode = function(str)
+			local floor = math.floor
 			local char = string.char
-			local b = 'ADONIS+HUJKLMSBP13579VWXYZadonis/hujklmsbp24680vwxyz><_*+-?!&@%#'
+			local nOut = 0
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+			local strLen = #str
+			local out = table.create(math.ceil(strLen / 0.75))
 
+			-- 3 octets become 4 hextets
+			for i = 1, strLen - 2, 3 do
+				local b1, b2, b3 = str:byte(i, i + 3)
+				local word = b3 + b2 * 256 + b1 * 256 * 256
 
-			data = gsub(data, '[^'..b..'=]', '')
-			return (gsub(gsub(data, '.', function(x)
-				if x == '=' then
-					return ''
-				end
-				local r, f = '', (find(b, x) - 1)
-				for i = 6, 1, -1 do
-					r ..= (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
-				end
-				return r;
-			end), '%d%d%d?%d?%d?%d?%d?%d?', function(x)
-				if #x ~= 8 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 8 do
-					c += (sub(x, i, i) == '1' and 2 ^ (8 - i) or 0)
-				end
-				return char(c)
-			end))
+				local h4 = word % 64 + 1
+				word = floor(word / 64)
+				local h3 = word % 64 + 1
+				word = floor(word / 64)
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = alphabet:sub(h3, h3)
+				out[nOut + 4] = alphabet:sub(h4, h4)
+				nOut = nOut + 4
+			end
+
+			local remainder = strLen % 3
+
+			if remainder == 2 then
+				-- 16 input bits -> 3 hextets (2 full, 1 partial)
+				local b1, b2 = str:byte(-2, -1)
+				-- partial is 4 bits long, leaving 2 bits of zero padding ->
+				-- offset = 4
+				local word = b2 * 4 + b1 * 4 * 256
+
+				local h3 = word % 64 + 1
+				word = floor(word / 64)
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = alphabet:sub(h3, h3)
+				out[nOut + 4] = "="
+			elseif remainder == 1 then
+				-- 8 input bits -> 2 hextets (2 full, 1 partial)
+				local b1 = str:byte(-1, -1)
+				-- partial is 2 bits long, leaving 4 bits of zero padding ->
+				-- offset = 16
+				local word = b1 * 16
+
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = "="
+				out[nOut + 4] = "="
+			end
+			-- if the remainder is 0, then no work is needed
+
+			return table.concat(out, "")
 		end;
 
-		Base64_A_Encode = function(data)
-			local sub = string.sub
-			local byte = string.byte
-			local gsub = string.gsub
-
-			return (gsub(gsub(data, '.', function(x)
-				local r, b = "", byte(x)
-				for i = 8, 1, -1 do
-					r ..= (b % 2 ^ i - b % 2 ^ (i - 1) > 0 and '1' or '0')
-				end
-				return r;
-			end) .. '0000', '%d%d%d?%d?%d?%d?', function(x)
-				if #(x) < 6 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 6 do
-					c += (sub(x, i, i) == '1' and 2 ^ (6 - i) or 0)
-				end
-				return sub('ADONIS+HUJKLMSBP13579VWXYZadonis/hujklmsbp24680vwxyz><_*+-?!&@%#', c + 1, c + 1)
-			end)..({
-				'',
-				'==',
-				'='
-			})[#(data) % 3 + 1])
-		end;
-		--
-
-		Base64Encode = function(data)
-			local sub = string.sub
-			local byte = string.byte
-			local gsub = string.gsub
-
-			return (gsub(gsub(data, '.', function(x)
-				local r, b = "", byte(x)
-				for i = 8, 1, -1 do
-					r ..= (b % 2 ^ i - b % 2 ^ (i - 1) > 0 and '1' or '0')
-				end
-				return r;
-			end) .. '0000', '%d%d%d?%d?%d?%d?', function(x)
-				if #(x) < 6 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 6 do
-					c += (sub(x, i, i) == '1' and 2 ^ (6 - i) or 0)
-				end
-				return sub('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', c + 1, c + 1)
-			end)..({
-				'',
-				'==',
-				'='
-			})[#(data) % 3 + 1])
-		end;
-
-		Base64Decode = function(data)
-			local sub = string.sub
-			local gsub = string.gsub
-			local find = string.find
+		Base64Decode = function(str)
+			local floor = math.floor
 			local char = string.char
+			local nOut = 0
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+			local strLen = #str
+			local out = table.create(math.ceil(strLen * 0.75))
+			local acc = 0
+			local nAcc = 0
 
-			local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+			local alphabetLut = {}
+			for i = 1, #alphabet do
+				alphabetLut[alphabet:sub(i, i)] = i - 1
+			end
 
-			data = gsub(data, '[^'..b..'=]', '')
-			return (gsub(gsub(data, '.', function(x)
-				if x == '=' then
-					return ''
+			-- 4 hextets become 3 octets
+			for i = 1, strLen do
+				local ch = str:sub(i, i)
+				local byte = alphabetLut[ch]
+				if byte then
+					acc = acc * 64 + byte
+					nAcc += 1
 				end
-				local r, f = '', (find(b, x) - 1)
-				for i = 6, 1, -1 do
-					r ..= (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
+
+				if nAcc == 4 then
+					local b3 = acc % 256
+					acc = floor(acc / 256)
+					local b2 = acc % 256
+					acc = floor(acc / 256)
+					local b1 = acc % 256
+
+					out[nOut + 1] = char(b1)
+					out[nOut + 2] = char(b2)
+					out[nOut + 3] = char(b3)
+					nOut += 3
+					nAcc = 0
+					acc = 0
 				end
-				return r;
-			end), '%d%d%d?%d?%d?%d?%d?%d?', function(x)
-				if #x ~= 8 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 8 do
-					c += (sub(x, i, i) == '1' and 2 ^ (8 - i) or 0)
-				end
-				return char(c)
-			end))
+			end
+
+			if nAcc == 3 then
+				-- 3 hextets -> 16 bit output
+				acc *= 64
+				acc = floor(acc / 256)
+				local b2 = acc % 256
+				acc = floor(acc / 256)
+				local b1 = acc % 256
+
+				out[nOut + 1] = char(b1)
+				out[nOut + 2] = char(b2)
+			elseif nAcc == 2 then
+				-- 2 hextets -> 8 bit output
+				acc *= 64
+				acc = floor(acc / 256)
+				acc *= 64
+				acc = floor(acc / 256)
+				local b1 = acc % 256
+
+				out[nOut + 1] = char(b1)
+			elseif nAcc == 1 then
+				error("Base64 has invalid length")
+			end
+
+			return table.concat(out, "")
 		end;
 
-		Hint = function(message, players, duration)
+		Hint = function(message, players, duration, title, image)
 			duration = duration or (#tostring(message) / 19 + 2.5)
 
 			for _, v in players do
 				Remote.MakeGui(v, "Hint", {
 					Message = message;
 					Time = duration;
+					Title = title;
+					Image = image;
 				})
 			end
 		end;
 
-		Message = function(title, message, players, scroll, duration)
+		Message = function(sender, title, message, image, players, scroll, duration)
+
+			-- Currently not used
+			if sender == 'Adonis' or sender == 'HelpSystem' or sender == 'Command' then
+				sender = nil
+			end
+
+			-- ////////// Compatability for older plugins (before sender and image ares were introduced)
+			if sender ~= nil and typeof(sender) ~= 'Instance' and typeof(sender) ~= 'userdata' and typeof(sender) ~= 'table' then
+				local oldVars = {
+					sender = sender,
+					title = title,
+					message = message,
+					image = image,
+					players = players,
+					scroll = scroll,
+					duration = duration,
+				}
+
+				title = oldVars.sender
+				message = oldVars.title
+				players = oldVars.message
+				scroll = oldVars.image
+				duration = oldVars.players
+
+				sender = nil
+				image = nil
+			end
+
 			duration = duration or (#tostring(message) / 19) + 2.5
+
+			if image then
+				-- Support "MatIcon://" for fast access to maticons
+				local MatIcon = image:match('MatIcon://(.+)')
+
+				if MatIcon then
+					image = server.MatIcons[MatIcon]
+				elseif sender and (image == 'HeadShot') then
+					image = `rbxthumb://type=AvatarHeadShot&id={sender.UserId}&w=48&h=48`
+				end
+			end
 
 			for _, v in players do
 				task.defer(function()
@@ -932,6 +926,7 @@ return function(Vargs, GetEnv)
 						Message = message;
 						Scroll = scroll;
 						Time = duration;
+						Image = image;
 					})
 				end)
 			end
@@ -952,32 +947,45 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
-		Notification = function(title, message, players, duration, icon)
+		Notification = function(title, message, players, duration, icon, onClick)
+			icon = icon and icon:match('MatIcon://(.+)') or icon
 			for _, v in players do
 				Remote.MakeGui(v, "Notification", {
 					Title = title;
 					Message = message;
 					Time = duration;
 					Icon = server.MatIcons[icon or "Info"];
+					OnClick = onClick;
 				})
 			end
 		end;
 
-		MakeWeld = function(a, b)
-			local weld = service.New("ManualWeld")
+		MakeWeld = function(a, b, c0, c1)
+			local weld = service.New("Weld")
 			weld.Part0 = a
 			weld.Part1 = b
-			weld.C0 = a.CFrame:Inverse() * b.CFrame
+			weld.C0 = c0 or a.CFrame:Inverse() * b.CFrame
+			weld.C1 = c1 or CFrame.new()
 			weld.Parent = a
 			return weld
 		end;
 
-		SetLighting = function(prop,value)
+		SetLighting = function(prop, value)
 			if service.Lighting[prop] ~= nil then
 				service.Lighting[prop] = value
 				Variables.LightingSettings[prop] = value
 				for _, p in service.GetPlayers() do
 					Remote.SetLighting(p, prop, value)
+				end
+			end
+		end;
+																									
+		SetAtmosphere = function(prop,value)
+			if service:FindFirstChildWhichIsA("Atmosphere")[prop] ~= nil then
+				service:FindFirstChildWhichIsA("Atmosphere")[prop] = value
+				Variables.AtmosphereSettings[prop] = value
+				for _, p in service.GetPlayers() do
+					Remote.SetAtmosphere(p, prop, value)
 				end
 			end
 		end;
@@ -997,7 +1005,7 @@ return function(Vargs, GetEnv)
 		end;
 
 		NewParticle = function(target, particleType, props)
-			local ind = Functions.GetRandom()
+			local ind = service.HttpService:GenerateGUID(false)
 			Variables.LocalEffects[ind] = {
 				Part = target;
 				Class = particleType;
@@ -1055,7 +1063,7 @@ return function(Vargs, GetEnv)
 				if isdon and Settings.DonorCapes and Settings.LocalCapes then
 					Remote.Send(player, "Function", "NewCape", data)
 				else
-					local ind = Functions.GetRandom()
+					local ind = service.HttpService:GenerateGUID(false)
 					Variables.LocalEffects[ind] = {
 						Player = player;
 						Part = player.Character.HumanoidRootPart;
@@ -1132,10 +1140,23 @@ return function(Vargs, GetEnv)
 			local torso = char:FindFirstChild("HumanoidRootPart") or char.PrimaryPart
 			local pos = torso.CFrame
 
-			local clone
+			local oldArchivable = char.Archivable
 			char.Archivable = true
-			clone = char:Clone()
-			char.Archivable = false
+			local rawClone = char:Clone()
+			char.Archivable = oldArchivable
+			local clone = Instance.new("Actor")
+
+			clone.PrimaryPart = rawClone.PrimaryPart
+			clone.WorldPivot = rawClone.WorldPivot
+			--clone:ScaleTo(rawClone:GetScale())
+
+			for k, v in ipairs(rawClone:GetAttributes()) do
+				clone:SetAttribute(k, v)
+			end
+
+			for _, v in ipairs(rawClone:GetChildren()) do
+				v.Parent = clone
+			end
 
 			for i = 1, num do
 				local new = clone:Clone()
@@ -1145,11 +1166,11 @@ return function(Vargs, GetEnv)
 				local event = brain.Event
 
 				local oldAnim = new:FindFirstChild("Animate")
-				local isR15 = hum.RigType == "R15"
-				local anim = isR15 and Deps.Assets.R15Animate:Clone() or Deps.Assets.R6Animate:Clone()
+				local anim = hum.RigType == Enum.HumanoidRigType.R15 and Deps.Assets.R15Animate:Clone() or Deps.Assets.R6Animate:Clone()
 
 				new.Name = player.Name
-				new.HumanoidRootPart.CFrame = pos*CFrame.Angles(0, math.rad((360/num)*i), 0) * CFrame.new((num*0.2)+5, 0, 0)
+				new.Archivable = false
+				new:PivotTo(pos * CFrame.Angles(0, math.rad((360/num)*i+90), 0) * CFrame.new((num*0.2)+5, 0, 0) * CFrame.Angles(0, math.pi / 2, 0))
 
 				hum.WalkSpeed = speed
 				hum.MaxHealth = health
@@ -1166,7 +1187,9 @@ return function(Vargs, GetEnv)
 				brain.Disabled = false
 				new.Parent = workspace
 
-				task.wait()
+				if i % 5 == 1 then
+					task.wait()
+				end
 
 				event:Fire("SetSetting", {
 					Creator = player;
@@ -1209,7 +1232,7 @@ return function(Vargs, GetEnv)
 			if service.Players:FindFirstChild(player.Name) then
 				local parent = player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui", 15) or player:WaitForChild("Backpack")
 				local cl = Core.NewScript("LocalScript", source)
-				cl.Name = name or Functions.GetRandom()
+				cl.Name = name or service.HttpService:GenerateGUID(false)
 				cl.Parent = parent
 				cl.Disabled = false
 				if object then
@@ -1218,41 +1241,58 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
-		Split = function(msg,key,num)
-			if not msg or not key or not num or num <= 0 then return {} end
-			if key=="" then key = " " end
+		Split = function(msg, key, num, useMagicChars)
+			-- Rebuilt revamped version (the old one was broken) which supports quotation is based off Paul's answer to stackoverflow question #28664139, with the addition of better escaping support, thanks Paul! I hate lua patterns with a passion ngl, this is a one line regex...
+			if not msg or not key then return {} end
+			if key=="" or key == nil then key = " " end
+			if num==nil then num = math.huge end
+			if useMagicChars==nil then useMagicChars = true end
 
 			local tab = {}
 			local str = ''
 
-			for arg in string.gmatch(msg,'([^'..key..']+)') do
+			local spat, epat, escquotpat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=], [=[(\(['"]))]=], nil, nil
+
+			if useMagicChars == false then
+				spat = ""
+				epat = ""
+				escquotpat = ""
+			end
+
+			local keyPattern = "[^"..key.."]+"
+
+			if key:match("%s") then
+				keyPattern = "%S+" -- If the key is a whitespace character, use any whitespace character as the pattern
+			end
+
+			for arg in msg:gmatch(keyPattern) do
+				local squoted = arg:match(spat)
+				local equoted = arg:match(epat)
+				local escaped = arg:match([=[(\*)['"]$]=])
+
 				if #tab>=num then
 					break
 				elseif #tab>=num-1 then
 					table.insert(tab,string.sub(msg,#str+1,#msg))
-				else
-					str ..= arg..key
-					table.insert(tab,arg)
+					continue
+				end
+
+				if squoted and not quoted and not equoted then
+					buf, quoted = arg, squoted
+				elseif buf and equoted == quoted and #escaped % 2 == 0 then
+					arg, buf, quoted = buf .. key .. arg, nil, nil
+				elseif buf then
+					buf = buf .. key .. arg
+				end
+
+				if not buf then
+					local result = arg:gsub(spat, ""):gsub(epat, ""):gsub(escquotpat,"%2")
+					str ..= result .. key
+					table.insert(tab,result)
 				end
 			end
 
 			return tab
-		end;
-
-		BasicSplit = function(msg,key)
-			local ret = {}
-			for arg in string.gmatch(msg,"([^"..key.."]+)") do
-				table.insert(ret,arg)
-			end
-			return ret
-		end;
-
-		CountTable = function(tab)
-			local num = 0
-			for i in tab do
-				num += 1
-			end
-			return num
 		end;
 
 		IsValidTexture = function(id)
@@ -1277,10 +1317,6 @@ return function(Vargs, GetEnv)
 
 		Trim = function(str)
 			return string.match(str, "^%s*(.-)%s*$")
-		end;
-
-		Round = function(num)
-			return math.floor(num + 0.5)
 		end;
 
 		RoundToPlace = function(num, places)
@@ -1335,16 +1371,30 @@ return function(Vargs, GetEnv)
 			return cache
 		end;
 
+		GetNameFromUserIdAsync = function(id)
+			local cache = Admin.UsernameCache[id]
+			if not cache then
+				local success, Username = pcall(service.Players.GetNameFromUserIdAsync, service.Players, id)
+
+				if success then
+					Admin.UsernameCache[id] = Username
+					return Username
+				end
+			end
+
+			return cache
+		end;
+
 		Shutdown = function(reason)
-			Functions.Message(Settings.SystemTitle, "The server is shutting down...", service.Players:GetPlayers(), false, 5)
+			Functions.Message('Adonis', Settings.SystemTitle, "The server is shutting down...", 'MatIcon://Warning', service.Players:GetPlayers(), false, 5)
 			task.wait(1)
 
 			service.Players.PlayerAdded:Connect(function(player)
-				player:Kick("Server Shutdown\n\n".. tostring(reason or "No Reason Given"))
+				player:Kick(`Server Shutdown:\n\n{reason or "No Reason Given"}`)
 			end)
 
 			for _, v in service.Players:GetPlayers() do
-				v:Kick("Server Shutdown\n\n" .. tostring(reason or "No Reason Given"))
+				v:Kick(`Server Shutdown:\n\n{reason or "No Reason Given"}`)
 			end
 		end;
 
@@ -1365,6 +1415,20 @@ return function(Vargs, GetEnv)
 				end
 			end
 		end;
+		
+		AddJoinFilter = function(name, func) 
+			if server.Variables.PlayerJoinFilters[name] then
+				error(string.format("The Join Filter %s already exists!", name))
+			else
+				server.Variables.PlayerJoinFilters[name] = func
+			end
+		end;
+		
+		RemoveJoinFilter = function(name) 
+			if server.Variables.PlayerJoinFilters[name] then
+				server.Variables.PlayerJoinFilters[name] = nil
+			end
+		end;
 
 		CheckMatch = function(check, match)
 			if check == match then
@@ -1383,17 +1447,21 @@ return function(Vargs, GetEnv)
 					num += 1
 				end
 
-				return good and num == Functions.CountTable(match)
+				return good and num == service.CountTable(match)
 			end
 			return false
 		end;
 
-		LaxCheckMatch = function(check, match)
+		LaxCheckMatch = function(check, match, opts)
+			local keys = if opts and type(opts) == 'table' and opts.IgnoreKeys then opts.IgnoreKeys else {}
 			if check == match then
 				return true
 			elseif type(check) == "table" and type(match) == "table" then
 				for k, v in match do
-					if check[k] ~= v then
+					if table.find(keys, k) then continue end
+					if type(v) == "table" and not Functions.LaxCheckMatch(check[k], v, opts) then
+						return false
+					elseif type(v) ~= "table" and check[k] ~= v then
 						return false
 					end
 				end
@@ -1461,6 +1529,15 @@ return function(Vargs, GetEnv)
 			end
 			plr.Character = newCharacterModel
 
+			-- Clone StarterCharacterScripts to new character
+			if service.StarterPlayer:FindFirstChild("StarterCharacterScripts") then
+				for _, v in service.StarterPlayer:FindFirstChild("StarterCharacterScripts"):GetChildren() do
+					if v.Archivable then
+						v:Clone().Parent = newCharacterModel
+					end
+				end
+			end
+
 			newCharacterModel:PivotTo(oldCFrame)
 			newCharacterModel.Parent = workspace
 
@@ -1481,7 +1558,7 @@ return function(Vargs, GetEnv)
 					elseif clothingType == "Pants" then "PantsTemplate"
 					elseif clothingType == "ShirtGraphic" then "Graphic"
 					else nil, "Invalid clothing type")
-				] = "rbxassetid://"..id;
+				] = `rbxassetid://{id}`;
 			})
 		end;
 
@@ -1531,4 +1608,8 @@ return function(Vargs, GetEnv)
 			return if allowNil then nil else BrickColor.random()
 		end;
 	};
+
+	task.spawn(xpcall, function()
+		server.Functions.NuclearExplode = require(server.Dependencies.FastNuke);
+	end, warn)
 end

@@ -1,32 +1,27 @@
 <div align="center">
-    <img src="https://images-ext-2.discordapp.net/external/aIBRjVfZJAGn2awfso3GY3kadhMQlVupqLEwnKGD3OE/https/repository-images.githubusercontent.com/55325103/2bed6800-bfef-11eb-835b-99b981918623?width=300&height=260"/>
-    <div>&nbsp;</div>
-    <a href="https://www.roblox.com/library/7510622625/">
-        <img src="https://img.shields.io/static/v1?label=roblox&message=model&color=blue&logo=roblox&logoColor=white"/>
-    </a>
-    <a href="https://www.roblox.com/library/8612978896/">
-        <img src="https://img.shields.io/badge/roblox-nightly-blueviolet?logo=roblox"/>
-    </a>
-    <a href="https://github.com/Epix-Incorporated/Adonis/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/Epix-Incorporated/Adonis"/>
-    </a>
-    <a href="https://github.com/Epix-Incorporated/Adonis/releases">
-        <img src="https://img.shields.io/github/v/release/Epix-Incorporated/Adonis?label=version"/>
-    </a>
-    <a href="https://dvr.cx/discord">
-        <img src="https://img.shields.io/discord/81902207070380032?label=discord&logo=discord&logoColor=white"/>
-    </a>
+
+<img src="https://repository-images.githubusercontent.com/55325103/2bed6800-bfef-11eb-835b-99b981918623?width=300&height=260" alt="The Epix-Incorporated logo" width="300" height="260">
+
+<div>&nbsp;</div>
+
+[![Roblox model](https://img.shields.io/static/v1?label=roblox&message=model&color=blue&logo=roblox&logoColor=white)](https://www.roblox.com/library/7510622625/ "The offical Adonis admin model.")
+[![Roblox nightly](https://img.shields.io/badge/roblox-nightly-blueviolet?logo=roblox)](https://www.roblox.com/library/8612978896/ "The beta testing source code modulescript.")
+[![LICENSE](https://img.shields.io/github/license/Epix-Incorporated/Adonis)](https://github.com/Epix-Incorporated/Adonis/blob/master/LICENSE.md "The legal LICENSE governing the usage of the admin system.")
+[![releases](https://img.shields.io/github/v/release/Epix-Incorporated/Adonis?label=version)](https://github.com/Epix-Incorporated/Adonis/releases "Downloadable versions of the admin system.")
+[![Discord server](https://img.shields.io/discord/81902207070380032?label=discord&logo=discord&logoColor=white)](https://dvr.cx/discord "A Discord server where people can discuss Adonis related stuff and talk.")
+[![lint](https://github.com/Epix-Incorporated/Adonis/actions/workflows/lint.yml/badge.svg)](https://github.com/Epix-Incorporated/Adonis/actions/workflows/lint.yml "Allows to check if the code of the admin system is valid without errors.")
+
 </div>
 
 ---
 
 Adonis is a community-maintained server moderation and management system created for use on the Roblox platform.
 
-## ✨ Installation
+<h2 id="install"> ✨ Installation </h2>
 
-📢 **New to Adonis? Take a look at our official quick start video [here](https://youtu.be/1f9x9gdxLjw) or read the unofficial setup guide [here](https://devforum.roblox.com/t/1535122).**
+📢 **New to Adonis? Take a look at our [official quick start video](https://youtu.be/1f9x9gdxLjw) or read [the unofficial setup guide](https://devforum.roblox.com/t/1535122).**
 
-If you get stuck, feel free to ask for assistance in our [Discord server](https://discord.gg/H5RvTP3).
+If you get stuck, feel free to ask for assistance on our [Discord server](https://discord.gg/H5RvTP3).
 
 ### Method 1 (recommended): Official Roblox Model
 
@@ -38,33 +33,40 @@ If you get stuck, feel free to ask for assistance in our [Discord server](https:
 1. Download the `rbxm` file snapshot from the [latest release](https://github.com/Epix-Incorporated/Adonis/releases/latest).
 2. Import the model file into Studio.
 
-ℹ️ **Note:** By default, snapshots included in releases have [`DebugMode`](#🔧-debug-mode) enabled.
+ℹ️ **Note:** By default, snapshots included in releases have [`DebugMode`](#debug-mode) enabled.
 
 ### Method 3: Filesystem
 
 1. Download the repository to your computer's file system.
 2. Install and use a plugin like [Rojo](https://rojo.space/) to compile Adonis into a `rbxmx` file.
-    If using Rojo, you can run `rojo build /path/to/adonis -o Adonis.rbxmx` to build a `rbxmx`.
+    If using Rojo, you can run `rojo build /path/to/adonis -o Adonis.rbxmx` to build an `rbxmx`.
 3. Import the compiled model file into Studio.
 
-ℹ️ **Note:** By default, loaders compiled from the repository have [`DebugMode`](#🔧-debug-mode) enabled.
+🔐 **Warning:** By default, loaders compiled from the repository have [`DebugMode`](#debug-mode) enabled.
 
-**⚠️ Method 3 compiles the _bleeding edge_ version of Adonis, which may be not fully tested and highly unstable.**
+**⚠️ Method 3 compiles the *bleeding edge* version of Adonis, which may be not fully tested and is highly unstable.**
 
-### ⚙️ Configuring Adonis
+<h3 id="configuring-adonis">⚙️ Configuring Adonis</h3>
 
 Once you've inserted the Adonis loader into your game, open `Adonis_Loader` > `Config` > `Settings`, and change `settings.DataStoreKey` to something absolutely random (eg. `"2fgi02e)^Q"`). This is for security as it prevents serverside tampering with Adonis's datastores.
 
 You may then edit the Settings module to configure Adonis to suit your game. Instructions and elaboration are provided within the Settings module.
 
-### 🔧 Debug Mode
+<h3 id="debug-mode">🔧 Debug Mode</h3>
 
-The Adonis loader provides a `DebugMode` option which will load a local copy of the `MainModule` rather than fetching the latest version. This could be useful if you are a contributor working on the `MainModule`, or want to maintain a custom version for your game. Debug mode expects the `MainModule` to share the same parent with the loader model (e.g. both should be in `ServerScriptService`). **By default, snapshots provided in  releases have `DebugMode` enabled.**
+#### **PLEASE NOTE THAT THIS FEATURE IS INTENDED FOR DEVELOPMENT/DEBUGGING PURPOSES ONLY, PLEASE CHANGE `ModuleID` FOR CUSTOM MODULES**
+The `DebugModule` feature enables a number of debug features, including but not limited to:
+
+1. Not protecting the Adonis model (such as parenting it to nil)
+2. Exposes a debugging API
+3. Enables debugging commands for Creators
+
+The Adonis loader provides a `DebugMode` option which will load a local copy of the `MainModule` rather than fetching the latest version. This could be useful if you are a contributor working on the `MainModule`. Debug mode expects the `MainModule` to share the same parent with the loader model (e.g. both should be in `ServerScriptService`). **By default, snapshots provided in releases have `DebugMode` enabled.**
 
 #### Toggling debug mode
 
-* Open `Adonis_Loader` > `Loader` > `Loader`
-* Change `DebugMode` at the end of the `data` table to the desired value (e.g. `DebugMode = false`)
+1. Open `Adonis_Loader` > `Loader` > `Loader`
+2. Change `DebugMode` at the end of the `data` table to the desired value (e.g. `DebugMode = false`)
 
 * Official Adonis Loader: <https://www.roblox.com/library/7510622625/Adonis-Admin-Loader-Epix-Incorporated>
 * Official MainModule: <https://www.roblox.com/library/7510592873/Adonis-MainModule>
@@ -88,7 +90,7 @@ The Adonis loader provides a `DebugMode` option which will load a local copy of 
 
 ## ⭐ Contributing
 
-The purpose of this repository is to allow others to contribute and make improvements to Adonis. Even if you've never contributed on GitHub before, we would appreciate any contributions that you can provide.
+The purpose of this repository is to allow others to contribute and make improvements to Adonis. Even if you've never contributed to GitHub before, we would appreciate any contributions that you can provide.
 
 ### 📜 Contributing Guide
 
@@ -96,8 +98,9 @@ Read the [contributing guide](https://github.com/Epix-Incorporated/Adonis/blob/m
 
 ### ⚖️ License
 
-Adonis is available under the terms of the MIT license. Read more details about the license [here](https://github.com/Epix-Incorporated/Adonis/blob/master/LICENSE).
+Adonis is available under the terms of [the MIT license](https://github.com/Epix-Incorporated/Adonis/blob/master/LICENSE).
 
 ### Thank you to our contributors
 
 [![contributors](https://contributors-img.web.app/image?repo=Epix-Incorporated/Adonis)](https://github.com/Epix-Incorporated/Adonis/graphs/contributors)
+

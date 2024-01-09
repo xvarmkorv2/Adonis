@@ -14,7 +14,6 @@
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<Content name="LinkedSource"><null></null></Content>
 				<string name="Name">HelpButton</string>
-				<string name="OriginalScriptGuid"></string>
 				<string name="ScriptGuid">{AE2B245B-468D-47BC-A0DF-40AF8B4AEA32}</string>
 				<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -174,7 +173,6 @@ end
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{0CF7425E-ABEA-4B57-BCF3-4404F70BD63D}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -447,7 +445,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -568,7 +565,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -670,7 +666,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">16</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>600</Weight>
@@ -759,7 +754,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">4</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>700</Weight>
@@ -935,12 +929,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">100</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Window</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -975,7 +971,6 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -1064,7 +1059,6 @@ end]]></ProtectedString>
 						<bool name="ClearTextOnFocus">true</bool>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -1551,7 +1545,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -1702,7 +1695,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">16</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>600</Weight>
@@ -1961,7 +1953,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{CA23F0F4-6492-4BED-A9F4-1CE75AABC170}</string>
 						<ProtectedString name="Source"><![CDATA[																																																				--[[
 --//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////--
@@ -2746,7 +2737,7 @@ return function(data, env)
 			if options then
 				for i,v in options do
 					local button = scroller:Add("TextButton", {
-						Text = "  ".. tostring(v);
+						Text = `  {v}`;
 						Size = UDim2.new(1, -10, 0, 30);
 						Position = UDim2.new(0, 5, 0, 30*(i-1));
 						ZIndex = menu.ZIndex;
@@ -2922,7 +2913,7 @@ return function(data, env)
 					end
 
 					local label = create("TextLabel",{
-						Text = " "..tostring(text);
+						Text = ` {text}`;
 						ToolTip = desc;
 						Size = UDim2.new(1,-5,0,(entProps.ySize or 20));
 						Visible = true;
@@ -3696,7 +3687,6 @@ end
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -3785,7 +3775,6 @@ end
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -3887,7 +3876,6 @@ end
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -3976,7 +3964,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -4079,7 +4066,6 @@ end
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">0</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/LegacyArial.json</url></Family>
 						<Weight>400</Weight>
@@ -4171,7 +4157,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">2</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>700</Weight>
@@ -4470,7 +4455,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">2</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>700</Weight>
@@ -4669,7 +4653,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -4760,7 +4743,6 @@ end
 							<int name="BorderSizePixel">1</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">1</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 								<Weight>400</Weight>
@@ -4878,7 +4860,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -6701,7 +6682,6 @@ end
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -6790,7 +6770,6 @@ end
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -6961,7 +6940,6 @@ end
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 							<Weight>400</Weight>
@@ -7050,7 +7028,6 @@ end
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -7141,7 +7118,6 @@ end
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -7213,12 +7189,14 @@ end
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Notify</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -7240,7 +7218,6 @@ end
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{B8025F9E-65C7-4450-92A8-7828E92C095F}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -7483,7 +7460,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">16</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>600</Weight>
@@ -7572,7 +7548,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">5</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>300</Weight>
@@ -8102,7 +8077,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -8367,7 +8341,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{50030479-DCBC-4CC1-9EDF-B518421F939C}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -8507,12 +8480,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Notif</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -8534,7 +8509,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{7FAF7F51-BFCF-48C7-ADAE-8F50DCAA1FB3}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -8612,7 +8586,6 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">3</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 						<Weight>400</Weight>
@@ -8775,12 +8748,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Message</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -8802,7 +8777,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{6F347222-5B55-4E8F-BAF3-24DB719CE3C1}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -9119,7 +9093,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -9208,7 +9181,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">4</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>700</Weight>
@@ -9278,12 +9250,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">900000</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Chat</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -9472,7 +9446,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -10179,7 +10152,6 @@ end]]></ProtectedString>
 							<bool name="ClearTextOnFocus">true</bool>
 							<bool name="ClipsDescendants">true</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -10457,7 +10429,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -10550,7 +10521,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -10643,7 +10613,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -10736,7 +10705,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -10829,7 +10797,6 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">3</token>
 							<Font name="FontFace">
 								<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 								<Weight>400</Weight>
@@ -11077,7 +11044,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -11166,7 +11132,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">4</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>700</Weight>
@@ -11265,7 +11230,6 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">3</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 						<Weight>400</Weight>
@@ -11359,7 +11323,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{683A92C5-C02E-43C2-A6B6-CBB41BA34C54}</string>
 						<ProtectedString name="Source"><![CDATA[
 client, cPcall, Pcall, Routine, service, gTable
@@ -11441,7 +11404,7 @@ return function(data, env)
 				if not string.match(v.Player, "%S") then
 					clone.Nameb.Text = v.Player
 				else
-					clone.Nameb.Text = "["..v.Player.."]: "
+					clone.Nameb.Text = `[{v.Player}]: `
 				end
 				clone.Visible = true
 				clone.Nameb.Font = "SourceSansBold"
@@ -11450,7 +11413,7 @@ return function(data, env)
 				clone.Nameb.TextColor3 = color.Color
 
 
-				tester.Text = "["..v.Player.."]: "
+				tester.Text = `[{v.Player}]: `
 				local naml = tester.TextBounds.X + 5
 				if naml > 100 then
 					naml = 100
@@ -11815,7 +11778,7 @@ return function(data, env)
 	end)
 
 	admins.MouseButton1Click:Connect(function()
-		if isAdmin or tick() - lastClick > 5 then
+		if isAdmin or os.clock() - lastClick > 5 then
 			isAdmin = client.Remote.Get("CheckAdmin")
 			if isAdmin then
 				openAdmins()
@@ -11823,12 +11786,12 @@ return function(data, env)
 				admins.BackgroundTransparency = 0.8
 				admins.TextTransparency = 0.8
 			end
-			lastClick = tick()
+			lastClick = os.clock()
 		end
 	end)
 
 	cross.MouseButton1Click:Connect(function()
-		if isAdmin or tick() - lastClick > 5 then
+		if isAdmin or os.clock() - lastClick > 5 then
 			isAdmin = client.Remote.Get("CheckAdmin")
 			if isAdmin then
 				openCross()
@@ -11836,32 +11799,32 @@ return function(data, env)
 				cross.BackgroundTransparency = 0.8
 				cross.TextTransparency = 0.8
 			end
-			lastClick = tick()
+			lastClick = os.clock()
 		end
 	end)
 
 	box.FocusLost:Connect(function(enterPressed)
 		boxFocused = false
 		if enterPressed and not client.Variables.Muted then
-			if box.Text ~= '' and ((mode ~= "Cross" and tick() - lastChat >= 0.5) or (mode == "Cross" and tick() - lastChat >= 10)) then
+			if box.Text ~= '' and ((mode ~= "Cross" and os.clock() - lastChat >= 0.5) or (mode == "Cross" and os.clock() - lastChat >= 10)) then
 				if not client.Variables.Muted then
 					client.Remote.Send('ProcessCustomChat', box.Text, mode)
-					lastChat = tick()
+					lastChat = os.clock()
 				end
-			elseif not ((mode ~= "Cross" and tick() - lastChat >= 0.5) or (mode == "Cross" and tick() - lastChat >= 10)) then
+			elseif not ((mode ~= "Cross" and os.clock() - lastChat >= 0.5) or (mode == "Cross" and os.clock() - lastChat >= 10)) then
 				local tim
 				if mode == "Cross" then
-					tim = 10 - (tick() - lastChat)
+					tim = 10 - (os.clock() - lastChat)
 				else
-					tim = 0.5 - (tick() - lastChat)
+					tim = 0.5 - (os.clock() - lastChat)
 				end
 				tim = string.sub(tostring(tim), 1, 3)
-				client.Handlers.ChatHandler("SpamBot", "Sending too fast! Please wait "..tostring(tim).." seconds.", "System")
+				client.Handlers.ChatHandler("SpamBot", `Sending too fast! Please wait {tim} seconds.`, "System")
 			end
 			box.Text = "Click here or press the '/' key to chat"
 			fadeOut()
 			if mode ~= "Cross" then
-				lastChat = tick()
+				lastChat = os.clock()
 			end
 		end
 	end)
@@ -11951,7 +11914,7 @@ end
 			end
 
 			if #message > 150 then
-				message = string.sub(message, 1, 150).."..."
+				message = `{string.sub(message, 1, 150)}...`
 			end
 
 			if mode then
@@ -12044,10 +12007,10 @@ end
 					local head = char:FindFirstChild("Head")
 
 					if head then
-						local cont = service.LocalContainer():FindFirstChild(player.Name.."Bubbles")
+						local cont = service.LocalContainer():FindFirstChild(`{player.Name}Bubbles`)
 						if not cont then
 							cont = Instance.new("BillboardGui", service.LocalContainer())
-							cont.Name = player.Name.."Bubbles"
+							cont.Name = `{player.Name}Bubbles`
 							cont.StudsOffset = Vector3.new(0, 2, 0)
 							cont.SizeOffset = Vector2.new(0, 0.5)
 							cont.Size = UDim2.new(0, 200, 0, 150)
@@ -12243,7 +12206,6 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
 						<Weight>400</Weight>
@@ -12312,12 +12274,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">9000000</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Console</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -12500,7 +12464,6 @@ end]]></ProtectedString>
 						<bool name="ClearTextOnFocus">false</bool>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">16</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>600</Weight>
@@ -12842,7 +12805,6 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">3</token>
 					<Font name="FontFace">
 						<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 						<Weight>400</Weight>
@@ -12930,7 +12892,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{E4E59A50-D56E-4FA1-8189-62846C708FB8}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -13120,7 +13081,7 @@ return function(data, env)
 		if c == 'Text' and text.Text ~= '' and open then
 			if string.sub(text.Text, string.len(text.Text)) == "	" then
 				if players:FindFirstChild("Entry 0") then
-					text.Text = (string.sub(text.Text, 1, (string.len(text.Text) - 1))..players["Entry 0"].Text).." "
+					text.Text = `{string.sub(text.Text, 1, (string.len(text.Text) - 1))}{players["Entry 0"].Text} `
 				elseif scroll:FindFirstChild("Entry 0") then
 					text.Text = string.split(scroll["Entry 0"].Text, "<")[1]
 				else
@@ -13133,18 +13094,18 @@ return function(data, env)
 			players:ClearAllChildren()
 
 			local nText = text.Text
-			if string.match(nText,".*"..batchKey.."([^']+)") then
-				nText = string.match(nText,".*"..batchKey.."([^']+)")
+			if string.match(nText,`.*{batchKey}([^']+)`) then
+				nText = string.match(nText,`.*{batchKey}([^']+)`)
 				nText = string.match(nText,"^%s*(.-)%s*$")
 			end
 
 			local pNum = 0
-			local pMatch = string.match(nText,".+"..splitKey.."(.*)$")
+			local pMatch = string.match(nText,`.+{splitKey}(.*)$`)
 			for i,v in service.Players:GetPlayers() do
-				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,splitKey.."$") then
+				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,`{splitKey}$`) then
 					local new = entry:Clone()
 					new.Text = tostring(v)
-					new.Name = "Entry "..pNum
+					new.Name = `Entry {pNum}`
 					new.TextXAlignment = "Right"
 					new.Visible = true
 					new.Parent = players
@@ -13161,7 +13122,7 @@ return function(data, env)
 
 			local num = 0
 			for i,v in commands do
-				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText),"^(.-)"..splitKey) or string.lower(nText), 1, true) then
+				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText),`^(.-){splitKey}`) or string.lower(nText), 1, true) then
 					if not scrollOpen then
 						scrollOpenTween:Play();
 						--frame.Size = UDim2.new(1,0,0,140)
@@ -13173,7 +13134,7 @@ return function(data, env)
 					b.Visible = true
 					b.Parent = scroll
 					b.Text = v
-					b.Name = "Entry "..num
+					b.Name = `Entry {num}`
 					b.Position = UDim2.new(0,0,0,20*num)
 					b.MouseButton1Down:Connect(function()
 						text.Text = b.Text
@@ -13228,12 +13189,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Output</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -13328,7 +13291,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -13417,7 +13379,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -13494,7 +13455,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{A01C056B-1941-47DD-ABC4-F26BC1C33072}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -13574,12 +13534,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">900000</int>
 				<bool name="Enabled">false</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">PlayerList</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -13610,7 +13572,6 @@ end]]></ProtectedString>
 						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
 						<string name="Name">Code</string>
-						<string name="OriginalScriptGuid"></string>
 						<string name="ScriptGuid">{03B045CB-1E47-4A96-8B09-DCF4D3BA16B1}</string>
 						<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
@@ -13836,7 +13797,7 @@ return function(data, env)
 				local custom = specialPeople[tostring(p.UserId)]
 				if image then
 					if custom then
-						image.Image = 'http://www.roblox.com/asset/?id='..custom
+						image.Image = `http://www.roblox.com/asset/?id={custom}`
 						image.Visible = true
 					elseif p.UserId==game.CreatorId then
 						image.Image = 'rbxasset://textures/ui/icon_placeowner.png'
@@ -14780,7 +14741,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>
@@ -14869,7 +14829,6 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
 						<Font name="FontFace">
 							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
 							<Weight>400</Weight>

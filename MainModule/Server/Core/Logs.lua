@@ -1,6 +1,5 @@
 server = nil
 service = nil
-cPcall = nil
 Routine = nil
 GetEnv = nil
 origEnv = nil
@@ -13,6 +12,7 @@ return function(Vargs, GetEnv)
 
 	local server = Vargs.Server;
 	local service = Vargs.Service;
+	local DLL = server.DLL;
 
 	local MaxLogs = 1000
 	local Functions, Admin, Anti, Core, HTTP, Logs, Remote, Process, Variables, Settings
@@ -34,17 +34,19 @@ return function(Vargs, GetEnv)
 		Logs:AddLog("Script", "Logging Module Initialized");
 	end;
 
+	local UseDLL = server.Settings.UseLinkedListsInLogs == true or server.Settings.UseLinkedListsInLogs == nil
+
 	server.Logs = {
 		Init = Init;
-		Chats = {};
-		Joins = {};
-		Leaves = {};
-		Script = {};
-		RemoteFires = {};
-		Commands = {};
-		Exploit = {};
-		Errors = {};
-		DateTime = {};
+		Chats = if UseDLL then DLL.new() else {};
+		Joins = if UseDLL then DLL.new() else {};
+		Leaves = if UseDLL then DLL.new() else {};
+		Script = if UseDLL then DLL.new() else {};
+		RemoteFires = if UseDLL then DLL.new() else {};
+		Commands = if UseDLL then DLL.new() else {};
+		Exploit = if UseDLL then DLL.new() else {};
+		Errors = if UseDLL then DLL.new() else {};
+		DateTime = if UseDLL then DLL.new() else {};
 		TempUpdaters = {};
 		OldCommandLogsLimit = 1000; --// Maximum number of command logs to save to the datastore (the higher the number, the longer the server will take to close)
 
@@ -88,12 +90,16 @@ return function(Vargs, GetEnv)
 				log.Time = os.time()
 			end
 
-			table.insert(tab, 1, log)
-			if #tab > tonumber(MaxLogs) then
-				table.remove(tab, #tab)
+			if tab.__meta == "DLL" then
+				tab:AddToStartAndRemoveEndIfEnd(log, MaxLogs)
+			else 
+				table.insert(tab, 1, log)
+				if #tab > tonumber(MaxLogs) then
+					table.remove(tab, #tab)
+				end
 			end
 
-			service.Events.LogAdded:Fire(server.Logs.TabToType(tab), log, tab)
+			service.Events.LogAdded:Fire(Logs.TabToType(tab), log, tab)
 		end;
 
 		SaveCommandLogs = function()
@@ -102,10 +108,10 @@ return function(Vargs, GetEnv)
 				return
 			end
 
-			warn("Saving command logs...")
+			print("Saving command logs...")
 
 			if Settings.SaveCommandLogs ~= true or Settings.DataStoreEnabled ~= true then
-				warn("Skipped saving command logs.")
+				print("Skipped saving command logs.")
 				return
 			end
 
@@ -121,15 +127,19 @@ return function(Vargs, GetEnv)
 				local temp = {}
 
 				for _, m in logsToSave do
-					local newTab = type(m) == "table" and service.CloneTable(m) or m
-					if type(m) == "table" and newTab.Player then
-						local p = newTab.Player
-						newTab.Player = {
-							Name = p.Name;
-							UserId = p.UserId;
-						}
+					local isTable = type(m) == "table"
+					local newTab = if isTable then service.CloneTable(m) else m
+
+					if (isTable and not newTab.NoSave) or not isTable then
+						if isTable and newTab.Player then
+							local p = newTab.Player
+							newTab.Player = {
+								Name = p.Name;
+								UserId = p.UserId;
+							}
+						end
+						table.insert(temp, newTab)--{Time = m.Time; Text = `{m.Text}: {m.Desc}`; Desc = m.Desc})
 					end
-					table.insert(temp, newTab)--{Time = m.Time; Text = m.Text..": "..m.Desc; Desc = m.Desc})
 				end
 
 				if oldLogs then
@@ -158,7 +168,7 @@ return function(Vargs, GetEnv)
 				return temp
 			end)
 
-			warn("Command logs saved!")
+			print("Command logs saved!")
 		end;
 
 		ListUpdaters = {
@@ -171,6 +181,6 @@ return function(Vargs, GetEnv)
 			end;
 		};
 	};
-
+	
 	Logs = Logs
 end

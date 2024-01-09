@@ -25,7 +25,7 @@ return function(Vargs, env)
 			Prefix = Settings.PlayerPrefix;
 			Commands = {"cape", "donorcape"};
 			Args = {};
-			Description = "Get donor cape (remove using "..Settings.PlayerPrefix.."uncape)";
+			Description = `Get donor cape (remove using {Settings.PlayerPrefix}uncape)`;
 			Donors = true;
 			AdminLevel = "Donors";
 			Function = function(plr: Player, args: {string})
@@ -227,7 +227,7 @@ return function(Vargs, env)
 					Functions.RemoveParticle(torso, "DONOR_PARTICLE")
 					Functions.NewParticle(torso, "ParticleEmitter", {
 						Name = "DONOR_PARTICLE";
-						Texture = 'rbxassetid://'..Functions.GetTexture(args[1]);
+						Texture = `rbxassetid://{Functions.GetTexture(args[1])}`;
 						Size = NumberSequence.new({
 							NumberSequenceKeypoint.new(0,0);
 							NumberSequenceKeypoint.new(.1,.25,.25);
@@ -244,7 +244,7 @@ return function(Vargs, env)
 						Rotation = NumberRange.new(0,359);
 						RotSpeed = NumberRange.new(-90,90);
 						Rate = 11;
-						VelocitySpread = 180;
+						SpreadAngle = Vector2.new(-180, 180);
 						Color = ColorSequence.new(startc,endc);
 					})
 				end
@@ -311,8 +311,33 @@ return function(Vargs, env)
 			Args = {"ID"};
 			Description = "Gives yourself the avatar item that belongs to <ID>";
 			Donors = true;
+			AdminLevel = "Donors";
 			Function = function(plr: Player, args: {[number]:string}, data: {})
-				return Commands.AvatarItem.Function(plr, {"@"..plr.Name, args[1]}, data)
+				return Commands.AvatarItem.Function(plr, {`@{plr.Name}`, args[1]}, data)
+			end
+		};
+
+		DonorSaveOutfit = {
+			Prefix = Settings.PlayerPrefix;
+			Commands = {"saveoutfit", "savefit"};
+			Args = {};
+			Description = "Saves your current character's appearance when respawning";
+			Donors = true;
+			AdminLevel = "Donors";
+			Function = function(plr: Player)
+				return Commands.SaveOutfit.Function(plr, {`@{plr.Name}`})
+			end
+		};
+
+		DonorRemoveOutfit = {
+			Prefix = Settings.PlayerPrefix;
+			Commands = {"removesavedoutfit", "removeoutfit", "removefit", "defaultavatar"};
+			Args = {};
+			Description = "Removes any currently saved outfits and reverts your character to its original look";
+			Donors = true;
+			AdminLevel = "Donors";
+			Function = function(plr: Player)
+				return Commands.RemoveSavedOutfit.Function(plr, {`@{plr.Name}`})
 			end
 		};
 
@@ -341,9 +366,9 @@ return function(Vargs, env)
 				local hat = plr.Character:FindFirstChild(args[1])
 				if hat and hat:IsA("Accessory") then
 					hat:Destroy()
-					Functions.Hint(args[1].." has been removed.", {plr})
+					Functions.Hint(`{args[1]} has been removed.`, {plr})
 				else
-					Functions.Hint(args[1].." is not a valid accessory. Run `"..Settings.PlayerPrefix.."myhats` for a list of accessories you are wearing.", {plr})
+					Functions.Hint(`{args[1]} is not a valid accessory. Run {Settings.PlayerPrefix}myhats for a list of accessories you are wearing.`, {plr})
 				end
 
 			end

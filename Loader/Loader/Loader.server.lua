@@ -9,6 +9,9 @@
 	CURRENT MODULE:
 	https://www.roblox.com/library/7510592873/Adonis-MainModule
 
+	NIGHTLY MODULE:
+	https://www.roblox.com/library/8612978896/Nightlies-Adonis-MainModule
+
 --]]
 
 ----------------------------------------------------------------------------------
@@ -25,7 +28,11 @@ local warn = function(...)
 	warn(":: Adonis ::", ...)
 end
 
-warn("Loading...")
+local print = function(...)
+	print(":: Adonis ::", ...)
+end
+
+print("Loading...")
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
@@ -40,6 +47,7 @@ if mutex then
 else
 	mutex = Instance.new("StringValue")
 	mutex.Name = "__Adonis_MUTEX"
+	mutex.Archivable = false
 	mutex.Value = script:GetFullName()
 	mutex.Parent = RunService
 
@@ -47,7 +55,6 @@ else
 	local configFolder = model.Config
 	local loaderFolder = model.Loader
 
-	local dropper = loaderFolder.Dropper
 	local loader = loaderFolder.Loader
 	local runner = script
 
@@ -72,11 +79,15 @@ else
 		Core = loaderFolder;
 
 		Loader = loader;
-		Dopper = dropper;
 		Runner = runner;
 
-		ModuleID = 7510592873;  --// https://www.roblox.com/library/7510592873/Adonis-MainModule
-		LoaderID = 7510622625;	--// https://www.roblox.com/library/7510622625/Adonis-Loader-Sceleratis-Davey-Bones-Epix
+		ModuleID = 7510592873;  		--// https://www.roblox.com/library/7510592873/Adonis-MainModule
+		LoaderID = 7510622625;			--// https://www.roblox.com/library/7510622625/Adonis-Loader-Sceleratis-Davey-Bones-Epix
+		
+		--// Note: The nightly module is updated frequently with ever commit merged to the master branch on the Adonis repo.
+		--// It is prone to breaking, unstable, untested, and should not be used for anything other than testing/feature preview.
+		NightlyMode = false;			--// If true, uses the nightly module instead of the current release module.
+		NightlyModuleID = 8612978896; 	--// https://www.roblox.com/library/8612978896/Nightlies-Adonis-MainModule
 
 		DebugMode = true;
 	}
@@ -85,9 +96,13 @@ else
 
 	-- selene: allow(incorrect_standard_library_use)
 	script.Parent = nil --script:Destroy()
-	model.Name = math.random()
 
-	local moduleId = data.ModuleID
+	if not data.DebugMode then
+		model.Name = math.random()
+	end
+
+	local moduleId = if data.NightlyMode then data.NightlyModuleID else data.ModuleID
+	
 	if data.DebugMode then
 		for _, v in model.Parent:GetChildren() do
 			if v.Name == "MainModule" and v:IsA("ModuleScript") then
@@ -95,10 +110,11 @@ else
 				break
 			end
 		end
-		if not moduleId then
-			error("Adonis DebugMode is enabled but no ModuleScript named 'MainModule' is found in "..model.Parent:GetFullName())
+		if not moduleId and not data.NightlyMode then
+			error(`Adonis DebugMode is enabled but no ModuleScript named 'MainModule' is found in {model.Parent:GetFullName()}`)
 		end
 	end
+
 	local success, setTab = pcall(require, settingsModule)
 	if success then
 		data.Messages = setTab.Settings.Messages
@@ -130,7 +146,7 @@ else
 			table.insert(data.ServerPlugins, module)
 			
 		else
-			warn("[DEVELOPER ERROR] Unknown Plugin Type for "..tostring(module).."; Plugin name should either start with 'Server:', 'Server-', 'Client:', or 'Client-'")
+			warn(`[DEVELOPER ERROR] Unknown Plugin Type for {module}; Plugin name should either start with 'Server:', 'Server-', 'Client:', or 'Client-'`)
 		end
 	end
 
@@ -139,7 +155,7 @@ else
 	end
 
 	if tonumber(moduleId) then
-		warn("Requiring Adonis MainModule; Model URL: https://www.roblox.com/library/".. moduleId)
+		print(`Requiring Adonis MainModule; Model URL: https://www.roblox.com/library/{moduleId}`)
 	end
 
 	local module = require(moduleId)

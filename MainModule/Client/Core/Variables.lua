@@ -1,6 +1,5 @@
 client = nil
 service = nil
-cPcall = nil
 Pcall = nil
 Routine = nil
 GetEnv = nil
@@ -131,6 +130,7 @@ return function(Vargs, GetEnv)
 			FogColor = service.Lighting.FogColor;
 			FogEnd = service.Lighting.FogEnd;
 			FogStart = service.Lighting.FogStart;
-		}
+		};
+		KeycodeNames = require(client.Shared.KeycodeNames);
 	};
 end

@@ -1,6 +1,5 @@
 client = nil
 service = nil
-cPcall = nil
 Pcall = nil
 Routine = nil
 GetEnv = nil
@@ -224,32 +223,12 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
-		GetRandom = function(pLen)
-			--local str = ""
-			--for i=1,math.random(5,10) do str=str..string.char(math.random(33,90)) end
-			--return str
-
-			local random = math.random
-			local format = string.format
-
-			local Len = (type(pLen) == "number" and pLen) or random(5,10) --// reru
-			local Res = {};
-			for Idx = 1, Len do
-				Res[Idx] = format('%02x', random(255));
-			end;
-			return table.concat(Res)
-		end;
-
-		Round = function(num)
-			return math.floor(num + 0.5)
-		end;
-
 		SetView = function(ob)
 			local CurrentCamera = workspace.CurrentCamera
 
 			if ob=='reset' then
-				CurrentCamera.CameraType = 'Custom'
-				CurrentCamera.CameraSubject = service.Player.Character.Humanoid
+				CurrentCamera.CameraType = Enum.CameraType.Custom
+				CurrentCamera.CameraSubject = service.Player.Character:FindFirstChildOfClass("Humanoid")
 				CurrentCamera.FieldOfView = 70
 			else
 				CurrentCamera.CameraSubject = ob
@@ -309,75 +288,160 @@ return function(Vargs, GetEnv)
 					else
 						rot -= math.rad(speed*dt)
 					end
-					cam.CoordinateFrame *= CFrame.Angles(0, 0.00, rot)
+					cam.CFrame *= CFrame.Angles(0, 0.00, rot)
 					last = time()
 				end)
 			end
 		end;
 
-		Base64Encode = function(data)
-			local sub = string.sub
-			local byte = string.byte
-			local gsub = string.gsub
+		-- Thanks to Tiffany352 for this base64 implementation!
 
-			return (gsub(gsub(data, '.', function(x)
-				local r, b = "", byte(x)
-				for i = 8, 1, -1 do
-					r ..= (b % 2 ^ i - b % 2 ^ (i - 1) > 0 and '1' or '0')
-				end
-				return r;
-			end) .. '0000', '%d%d%d?%d?%d?%d?', function(x)
-				if #(x) < 6 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 6 do
-					c += (sub(x, i, i) == '1' and 2 ^ (6 - i) or 0)
-				end
-				return sub('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', c + 1, c + 1)
-			end)..({
-				'',
-				'==',
-				'='
-			})[#(data) % 3 + 1])
+		Base64Encode = function(str)
+			local floor = math.floor
+			local char = string.char
+			local nOut = 0
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+			local strLen = #str
+			local out = table.create(math.ceil(strLen / 0.75))
+
+			-- 3 octets become 4 hextets
+			for i = 1, strLen - 2, 3 do
+				local b1, b2, b3 = str:byte(i, i + 3)
+				local word = b3 + b2 * 256 + b1 * 256 * 256
+
+				local h4 = word % 64 + 1
+				word = floor(word / 64)
+				local h3 = word % 64 + 1
+				word = floor(word / 64)
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = alphabet:sub(h3, h3)
+				out[nOut + 4] = alphabet:sub(h4, h4)
+				nOut = nOut + 4
+			end
+
+			local remainder = strLen % 3
+
+			if remainder == 2 then
+				-- 16 input bits -> 3 hextets (2 full, 1 partial)
+				local b1, b2 = str:byte(-2, -1)
+				-- partial is 4 bits long, leaving 2 bits of zero padding ->
+				-- offset = 4
+				local word = b2 * 4 + b1 * 4 * 256
+
+				local h3 = word % 64 + 1
+				word = floor(word / 64)
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = alphabet:sub(h3, h3)
+				out[nOut + 4] = "="
+			elseif remainder == 1 then
+				-- 8 input bits -> 2 hextets (2 full, 1 partial)
+				local b1 = str:byte(-1, -1)
+				-- partial is 2 bits long, leaving 4 bits of zero padding ->
+				-- offset = 16
+				local word = b1 * 16
+
+				local h2 = word % 64 + 1
+				word = floor(word / 64)
+				local h1 = word % 64 + 1
+
+				out[nOut + 1] = alphabet:sub(h1, h1)
+				out[nOut + 2] = alphabet:sub(h2, h2)
+				out[nOut + 3] = "="
+				out[nOut + 4] = "="
+			end
+			-- if the remainder is 0, then no work is needed
+
+			return table.concat(out, "")
 		end;
 
-		Base64Decode = function(data)
-			local sub = string.sub
-			local gsub = string.gsub
-			local find = string.find
+		Base64Decode = function(str)
+			local floor = math.floor
 			local char = string.char
+			local nOut = 0
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+			local strLen = #str
+			local out = table.create(math.ceil(strLen * 0.75))
+			local acc = 0
+			local nAcc = 0
 
-			local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+			local alphabetLut = {}
+			for i = 1, #alphabet do
+				alphabetLut[alphabet:sub(i, i)] = i - 1
+			end
 
-			data = gsub(data, '[^'..b..'=]', '')
+			-- 4 hextets become 3 octets
+			for i = 1, strLen do
+				local ch = str:sub(i, i)
+				local byte = alphabetLut[ch]
+				if byte then
+					acc = acc * 64 + byte
+					nAcc += 1
+				end
 
-			return (gsub(gsub(data, '.', function(x)
-				if x == '=' then
-					return ''
+				if nAcc == 4 then
+					local b3 = acc % 256
+					acc = floor(acc / 256)
+					local b2 = acc % 256
+					acc = floor(acc / 256)
+					local b1 = acc % 256
+
+					out[nOut + 1] = char(b1)
+					out[nOut + 2] = char(b2)
+					out[nOut + 3] = char(b3)
+					nOut += 3
+					nAcc = 0
+					acc = 0
 				end
-				local r, f = '', (find(b, x) - 1)
-				for i = 6, 1, -1 do
-					r ..= (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0')
-				end
-				return r;
-			end), '%d%d%d?%d?%d?%d?%d?%d?', function(x)
-				if #x ~= 8 then
-					return ''
-				end
-				local c = 0
-				for i = 1, 8 do
-					c += (sub(x, i, i) == '1' and 2 ^ (8 - i) or 0)
-				end
-				return char(c)
-			end))
+			end
+
+			if nAcc == 3 then
+				-- 3 hextets -> 16 bit output
+				acc *= 64
+				acc = floor(acc / 256)
+				local b2 = acc % 256
+				acc = floor(acc / 256)
+				local b1 = acc % 256
+
+				out[nOut + 1] = char(b1)
+				out[nOut + 2] = char(b2)
+			elseif nAcc == 2 then
+				-- 2 hextets -> 8 bit output
+				acc *= 64
+				acc = floor(acc / 256)
+				acc *= 64
+				acc = floor(acc / 256)
+				local b1 = acc % 256
+
+				out[nOut + 1] = char(b1)
+			elseif nAcc == 1 then
+				error("Base64 has invalid length")
+			end
+
+			return table.concat(out, "")
 		end;
 
 		GetGuiData = function(args)
 			local props = {
 				"AbsolutePosition";
+				"AutomaticCanvasSize";
+				"BottomImage";
 				"AbsoluteSize";
+				"AnchorPoint";
+				"CornerRadius";
+				"CanvasSize";
+				"CanvasPosition";
 				"ClassName";
+				"ElasticBehavior";
 				"Name";
 				"Parent";
 				"Archivable";
@@ -389,10 +453,19 @@ return function(Vargs, GetEnv)
 				"BorderSizePixel";
 				"Position";
 				"Rotation";
+				"RichText";
 				"Selectable";
+				"HorizontalScrollBarPosition";
 				"Size";
+				"Enabled";
+				"Active";
 				"SizeConstraint";
 				"Style";
+				"ScrollBarThickness";
+				"ScrollBarImageTransparency";
+				"ScrollingEnabled";
+				"ScrollingDirection";
+				"ScrollBarImageColor";
 				"Visible";
 				"ZIndex";
 				"ClipsDescendants";
@@ -401,8 +474,11 @@ return function(Vargs, GetEnv)
 				"NextSelectionLeft";
 				"NextSelectionRight";
 				"NextSelectionUp";
+				"PlaceholderColor3";
+				"PlaceholderText";
 				"AutoButtonColor";
 				"Modal";
+				"MidImage";
 				"Image";
 				"ImageColor3";
 				"ImageRectOffset";
@@ -411,15 +487,73 @@ return function(Vargs, GetEnv)
 				"ScaleType";
 				"SliceCenter";
 				"Text";
+				"TopImage";
 				"TextColor3";
+				"TextDirection";
 				"Font";
 				"TextScaled";
+				"TextSize";
 				"TextStrokeColor3";
 				"TextStrokeTransparency";
 				"TextTransparency";
+				"TextTuncate";
 				"TextWrapped";
 				"TextXAlignment";
 				"TextYAlignment";
+				"VerticalScrollBarInset";
+				"VerticalScrollBarPosition";
+				"AspectRatio";
+				"AspectType";
+				"DominantAxis";
+				"Offset";
+				"Transparency";
+				"CellPadding";
+				"CellSize";
+				"Padding";
+				"PaddingBottom";
+				"PaddingLeft";
+				"PaddingRight";
+				"PaddingTop";
+				"Animated";
+				"Circular";
+				"EasingDirection";
+				"EasingStyle";
+				"TweenTime";
+				"FillDirection";
+				"SortOrder";
+				"VerticalAlignment";
+				"GamepadInputEnabled";
+				"ScrollWheelInputEnabled";
+				"TouchInputEnabled";
+				"Scale";
+				"MaxSize";
+				"MinSize";
+				"ApplyStrokeMode";
+				"Color";
+				"LineJoinMode";
+				"Thickness";
+				"FillEmptySpaceColumns";
+				"FillEmptySpaceRow";
+				"MajorAxis";
+				"HorizontalAlignment";
+				"MaxTextSize";
+				"MinTextSize";
+				"GroupColor3";
+				"GroupTransparency";
+				"SelectionImageObject";
+				"Looped";
+				"Playing";
+				"TimePosition";
+				"Video";
+				"Volume";
+				"LayoutOrder";
+				"Ambient";
+				"LightColor";
+				"LightDirection";
+				"CurrentCamera";
+				"AutomaticSize";
+				"AutoLocalize";
+				"RootLocalizationTable";
 			};
 
 			local classes = {
@@ -434,6 +568,20 @@ return function(Vargs, GetEnv)
 				"TextBox";
 				"BillboardGui";
 				"SurfaceGui";
+				"UICorner";
+				"UIAspectRatioConstraint";
+				"UIGradient";
+				"UIGridLayout";
+				"UIListLayout";
+				"UIPadding";
+				"UIPageLayout";
+				"UIScale";
+				"UISizeConstraint";
+				"UIStroke";
+				"UITableLayout";
+				"UITextSizeConstraint";
+				"VideoFrame";
+				"ViewportFrame"
 			}
 
 			local guis = {
@@ -537,7 +685,7 @@ return function(Vargs, GetEnv)
 		GetParticleContainer = function(target)
 			if target then
 				for _, v in service.LocalContainer():GetChildren() do
-					if v.Name == target:GetFullName().."PARTICLES" then
+					if v.Name == `{target:GetFullName()}PARTICLES` then
 						local obj = v:FindFirstChild("_OBJECT")
 						if obj.Value == target then
 							return v
@@ -554,7 +702,7 @@ return function(Vargs, GetEnv)
 			properties.Enabled = Variables.ParticlesEnabled;
 
 			effect = service.New(class, properties);
-			index = Functions.GetRandom();
+			index = service.HttpService:GenerateGUID(false);
 
 			Variables.Particles[index] = effect;
 
@@ -704,7 +852,7 @@ return function(Vargs, GetEnv)
 				Parent = p;
 				Name = "Decal";
 				Face = 2;
-				Texture = "rbxassetid://"..decalId;
+				Texture = `rbxassetid://{decalId}`;
 				Transparency = 0;
 			}) else nil
 
@@ -719,7 +867,7 @@ return function(Vargs, GetEnv)
 				Wave = true;
 				isR15 = isR15;
 			}
-			Variables.Capes[Functions.GetRandom()] = capeData
+			Variables.Capes[service.HttpService:GenerateGUID(false)] = capeData
 
 			local p = service.Players:GetPlayerFromCharacter(char)
 			if p and p == service.Player then
@@ -781,7 +929,7 @@ return function(Vargs, GetEnv)
 		MoveCapes = function()
 			service.StopLoop("CapeMover")
 			service.StartLoop("CapeMover",0.1,function()
-				if Functions.CountTable(Variables.Capes) == 0 or not Variables.CapesEnabled then
+				if service.CountTable(Variables.Capes) == 0 or not Variables.CapesEnabled then
 					service.StopLoop("CapeMover")
 				else
 					for i,v in Variables.Capes do
@@ -804,15 +952,15 @@ return function(Vargs, GetEnv)
 
 								local ang = 0.1
 								if wave then
-									if torso.Velocity.Magnitude > 1 then
-										ang += ((torso.Velocity.Magnitude/10)*.05)+.05
+									if torso.AssemblyLinearVelocity.Magnitude > 1 then
+										ang += ((torso.AssemblyLinearVelocity.Magnitude/10)*.05)+.05
 									end
 									v.Wave = false
 								else
 									v.Wave = true
 								end
-								ang += math.min(torso.Velocity.Magnitude/11, .8)
-								motor.MaxVelocity = math.min((torso.Velocity.Magnitude/111), .04) + 0.002
+								ang += math.min(torso.AssemblyLinearVelocity.Magnitude/11, .8)
+								motor.MaxVelocity = math.min((torso.AssemblyLinearVelocity.Magnitude/111), .04) + 0.002
 								if isPlayer then
 									motor.DesiredAngle = -ang
 								else
@@ -836,12 +984,6 @@ return function(Vargs, GetEnv)
 			end, true)
 		end;
 
-		CountTable = function(tab)
-			local count = 0
-			for _ in tab do count += 1 end
-			return count
-		end;
-
 		ClearAllInstances = function()
 			local objects = service.GetAdonisObjects()
 			for i in objects do
@@ -860,7 +1002,7 @@ return function(Vargs, GetEnv)
 
 			for _, v in animator:GetPlayingAnimationTracks() do v:Stop() end
 			local anim = service.New('Animation', {
-				AnimationId = 'rbxassetid://'..animId,
+				AnimationId = `rbxassetid://{animId}`,
 				Name = "ADONIS_Animation"
 			})
 			local track = animator:LoadAnimation(anim)
@@ -898,6 +1040,22 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
+		DisplaySystemMessageInTextChat = function(channel: TextChannel?, message, meta)
+			if service.TextChatService then
+				if not channel then
+					--// we wanna get the default channel because the new ChatSystem sucks
+					--// Please fix it Roblox
+					--// we need less strict ways to filter & receive messages
+					if service.TextChatService:FindFirstChild("TextChannels") and service.TextChatService.TextChannels:FindFirstChild("RBXSystem") then
+						channel = service.TextChatService.TextChannels.RBXSystem
+					end
+				end
+				if channel then
+					channel:DisplaySystemMessage(message, meta)
+				end
+			end
+		end;
+
 		SetCamProperty = function(prop,value)
 			local cam = workspace.CurrentCamera
 			if cam[prop] then
@@ -905,17 +1063,18 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
-		SetFPS = function(fps)
+		SetFPS = function(fps) --watameln was here
 			service.StopLoop("SetFPS")
 			local fps = tonumber(fps)
+
 			if fps then
 				service.StartLoop("SetFPS",0.1,function()
-					local fpslockint = time() +1 /fps
-					repeat until time()>=fpslockint
+					local cat = os.clock()
+					repeat while cat + 1/fps > os.clock() do end task.wait() cat = os.clock() until service.IsLooped("SetFPS") == false
 				end)
 			end
 		end;
-
+		
 		RestoreFPS = function()
 			service.StopLoop("SetFPS")
 		end;
@@ -996,8 +1155,8 @@ return function(Vargs, GetEnv)
 			end
 			while task.wait(0.01) do
 				for i = 1,50000000 do
-					cPcall(function() client.GPUCrash() end)
-					cPcall(function() crash() end)
+					task.spawn(pcall, function() client.GPUCrash() end)
+					task.spawn(pcall, function() crash() end)
 					print(1)
 				end
 			end
@@ -1041,7 +1200,13 @@ return function(Vargs, GetEnv)
 			if keyVal then
 				for _, e in Enum.KeyCode:GetEnumItems() do
 					if e.Value == keyVal then
-						return e.Name;
+						local name = service.UserInputService:GetStringForKeyCode(e)
+
+						if service.Trim(name) == "" or Variables.KeycodeNames[e] == name then
+							return e.Name
+						else
+							return name
+						end
 					end
 				end
 			end
@@ -1064,7 +1229,7 @@ return function(Vargs, GetEnv)
 					if time() - timer > 5 or isAdmin then
 						Remote.Send('ProcessCommand',Variables.KeyBinds[key],false,true)
 						UI.Make("Hint",{
-							Message = "[Ran] Key: "..Functions.KeyCodeToName(key).." | Command: "..tostring(Variables.KeyBinds[key])
+							Message = `[Ran] Key: {Functions.KeyCodeToName(key)} | Command: {Variables.KeyBinds[key]}`
 						})
 					end
 					timer = time()
@@ -1077,7 +1242,7 @@ return function(Vargs, GetEnv)
 			Variables.KeyBinds[tostring(key)] = command
 			Remote.Get("UpdateKeybinds",Variables.KeyBinds)
 			UI.Make("Hint",{
-				Message = 'Bound key "'..Functions.KeyCodeToName(key)..'" to command: '..command
+				Message = `Bound key "{Functions.KeyCodeToName(key)}" to command: {command}`
 			})
 		end;
 
@@ -1089,13 +1254,13 @@ return function(Vargs, GetEnv)
 				Remote.Get("UpdateKeybinds",Variables.KeyBinds)
 				Routine(function()
 					UI.Make("Hint",{
-						Message = 'Removed key "'..Functions.KeyCodeToName(key)..'" from keybinds'
+						Message = `Removed key "{Functions.KeyCodeToName(key)}" from keybinds`
 					})
 				end)
 			end
 		end;
 
-		BrickBlur = function(on,trans,color)
+		BrickBlur = function(on, trans, color)
 			local exists = service.LocalContainer():FindFirstChild("ADONIS_WINDOW_FUNC_BLUR")
 			if exists then exists:Destroy() end
 			if on then
@@ -1106,10 +1271,9 @@ return function(Vargs, GetEnv)
 				pa.Transparency = trans or 0.5
 				pa.CanCollide = false
 				pa.Anchored = true
-				pa.FormFactor = "Custom"
-				pa.Size=Vector3.new(100,100,0)
+				pa.Size = Vector3.new(100,100,0)
 				while pa and pa.Parent and task.wait(1/40) do
-					pa.CFrame = workspace.CurrentCamera.CoordinateFrame*CFrame.new(0,0,-2.5)*CFrame.Angles(12.6,0,0)
+					pa.CFrame = workspace.CurrentCamera.CFrame*CFrame.new(0,0,-2.5)*CFrame.Angles(12.6,0,0)
 				end
 			else
 				for _, v in workspace.CurrentCamera:GetChildren() do
@@ -1123,16 +1287,18 @@ return function(Vargs, GetEnv)
 		PlayAudio = function(audioId, volume, pitch, looped)
 			if Variables.localSounds[tostring(audioId)] then Variables.localSounds[tostring(audioId)]:Stop() Variables.localSounds[tostring(audioId)]:Destroy() Variables.localSounds[tostring(audioId)]=nil end
 			local sound = service.New("Sound")
-			sound.SoundId = "rbxassetid://"..audioId
+			sound.SoundId = `rbxassetid://{audioId}`
 			if looped then sound.Looped = true end
 			if volume then sound.Volume = volume end
 			if pitch then sound.Pitch = pitch end
-			sound.Name = "ADONI_LOCAL_SOUND "..audioId
+			sound.Name = `ADONIS_LOCAL_SOUND {audioId}`
 			sound.Parent = service.LocalContainer()
 			Variables.localSounds[tostring(audioId)] = sound
 			sound:Play()
 			task.wait(1)
-			repeat task.wait(0.1) until not sound.IsPlaying
+			if sound.IsPlaying == true then
+				sound.Ended:Wait()
+			end
 			sound:Destroy()
 			Variables.localSounds[tostring(audioId)] = nil
 		end;
@@ -1214,7 +1380,7 @@ return function(Vargs, GetEnv)
 				p.CanCollide = false
 				p.TopSurface = 0
 				p.BottomSurface = 0
-				if type(color)=="table" then
+				if type(color) == "table" then
 					color = Color3.new(color[1],color[2],color[3])
 				end
 				p.BrickColor = BrickColor.new(color) or BrickColor.new("White")
@@ -1224,10 +1390,9 @@ return function(Vargs, GetEnv)
 				if decal and decal~=0 then
 					local dec = service.New("Decal", p)
 					dec.Face = 2
-					dec.Texture = "http://www.roblox.com/asset/?id="..decal
+					dec.Texture = `http://www.roblox.com/asset/?id={decal}`
 					dec.Transparency=0
 				end
-				p.formFactor = "Custom"
 				p.Size = Vector3.new(.2,.2,.2)
 				local msh = service.New("BlockMesh", p)
 				msh.Scale = Vector3.new(9,17.5,.5)
@@ -1242,24 +1407,24 @@ return function(Vargs, GetEnv)
 				local wave = false
 				repeat task.wait(1/44)
 					local ang = 0.1
-					local oldmag = torso.Velocity.Magnitude
+					local oldmag = torso.AssemblyLinearVelocity.Magnitude
 					local mv = .002
 					if wave then 
-						ang += ((torso.Velocity.Magnitude/10)*.05)+.05
+						ang += ((torso.AssemblyLinearVelocity.Magnitude/10)*.05)+.05
 						wave = false
 					else
 						wave = true
 					end
-					ang += math.min(torso.Velocity.Magnitude/11, .5)
-					motor1.MaxVelocity = math.min((torso.Velocity.Magnitude/111), .04) + mv
+					ang += math.min(torso.AssemblyLinearVelocity.Magnitude/11, .5)
+					motor1.MaxVelocity = math.min((torso.AssemblyLinearVelocity.Magnitude/111), .04) + mv
 					motor1.DesiredAngle = -ang
 					if motor1.CurrentAngle < -.2 and motor1.DesiredAngle > -.2 then
 						motor1.MaxVelocity = .04
 					end
 
-					repeat task.wait() until motor1.CurrentAngle == motor1.DesiredAngle or math.abs(torso.Velocity.Magnitude - oldmag) >=(torso.Velocity.Magnitude/10) + 1
+					repeat task.wait() until motor1.CurrentAngle == motor1.DesiredAngle or math.abs(torso.AssemblyLinearVelocity.Magnitude - oldmag) >=(torso.AssemblyLinearVelocity.Magnitude/10) + 1
 
-					if torso.Velocity.Magnitude < .1 then
+					if torso.AssemblyLinearVelocity.Magnitude < .1 then
 						task.wait(.1)
 					end
 				until not p or not p.Parent or p.Parent ~= service.LocalContainer()
@@ -1270,11 +1435,11 @@ return function(Vargs, GetEnv)
 			local audioId = 296333956
 
 			local audio = Instance.new("Sound",service.LocalContainer())
-			audio.SoundId = "rbxassetid://"..audioId
+			audio.SoundId = `rbxassetid://{audioId}`
 			audio.Volume = 1
 
 			local audio2 = Instance.new("Sound",service.LocalContainer())
-			audio2.SoundId = "rbxassetid://"..audioId
+			audio2.SoundId = `rbxassetid://{audioId}`
 			audio2.Volume = 1
 
 			local phonemes = {
@@ -1591,14 +1756,14 @@ return function(Vargs, GetEnv)
 
 			}
 
-			game:service("ContentProvider"):Preload("rbxassetid://"..audioId)
+			game:service("ContentProvider"):Preload(`rbxassetid://{audioId}`)
 
 			local function getText(str)
 				local tab = {}
 				local str = str
 				local function getNext()
 					for _, v in phonemes do
-						local occ,pos = string.find(string.lower(str),"^"..v.str)
+						local occ,pos = string.find(string.lower(str), `^{v.str}`)
 						if occ then
 							if v.capture then
 								local real = v.real

@@ -1,6 +1,5 @@
 server = nil
 service = nil
-cPcall = nil
 Routine = nil
 GetEnv = nil
 origEnv = nil
@@ -36,9 +35,186 @@ return function(Vargs, GetEnv)
 		AddLog = Logs.AddLog;
 
 		TrackTask("Thread: ChatServiceHandler", function()
-			--// ChatService mute handler (credit to Coasterteam)
-			local chatService = Functions.GetChatService()
 
+			--// Support for modern TextChatService
+			if service.TextChatService and service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+				local function onNewTextchannel(textchannel: TextChannel)
+					AddLog("Script", `Connected to TextChannel: {textchannel.Name}`)
+					
+					if Settings.OverrideChatCallbacks ~= false then --// Default to "on" this for all games
+						AddLog("Script", "Overriding ShouldDeliverCallback for " .. textchannel.Name)
+						textchannel.ShouldDeliverCallback = function(chatMessage, textSource)
+							if
+								chatMessage.Status == Enum.TextChatMessageStatus.Success
+								or chatMessage.Status == Enum.TextChatMessageStatus.Sending
+							then
+								local SenderId = chatMessage.TextSource.UserId
+								local SenderPlayer = service.Players:GetPlayerByUserId(SenderId)
+								local Receiver = service.Players:GetPlayerByUserId(textSource.UserId)
+								local slowCache = Admin.SlowCache
+								
+								local IsOriginalSender = SenderPlayer == Receiver
+								
+								if not SenderPlayer then
+									return true
+								elseif Admin.DoHideChatCmd(SenderPlayer, chatMessage.Text) then -- // Hide chat commands?
+									return false
+								elseif Admin.IsMuted(SenderPlayer) then -- // Mute handler
+									if IsOriginalSender then
+										server.Remote.Send(SenderPlayer, "Function", "DisplaySystemMessageInTextChat", nil, `<font color="rgb(130, 100, 130)">[Adonis Chat]: </font><b>You are muted!</b> Other players cannot see your messages.`)
+									end 
+									
+									return false
+								elseif Admin.SlowMode and not Admin.CheckAdmin(SenderPlayer) and slowCache[SenderPlayer] and os.time() - slowCache[SenderPlayer] < Admin.SlowMode then
+									if IsOriginalSender then --// Only show this for the person sending! Hide for others, however
+										--Functions.Notification("You are chatting too fast!", string.format("[Adonis] :: Slow mode enabled! (%g second(s) remaining)", Admin.SlowMode - (os.time() - slowCache[SenderPlayer])), {SenderPlayer}, 10)
+										
+										server.Remote.Send(SenderPlayer, "Function", "DisplaySystemMessageInTextChat", nil, `<font color="rgb(130, 100, 130)">[Adonis Chat]: </font><b>You are sending messages too fast! {string.format("(%g second(s) remaining)", Admin.SlowMode - (os.time() - slowCache[SenderPlayer]))}`)
+									end
+									
+									return false
+								end
+
+								if Variables.DisguiseBindings[textSource.UserId] then -- // Disguise command handler
+									chatMessage.PrefixText = Variables.DisguiseBindings[textSource.UserId].TargetUsername..":"
+								end
+
+								if Admin.SlowMode and IsOriginalSender then
+									slowCache[SenderPlayer] = os.time()
+								end
+							end
+
+							return true
+						end
+					else 
+						AddLog("Script", `Using the 'CanSend' method of handling chat connectivity in channel {textchannel.Name}`)
+						server.Variables.TextChatSpeakers = {}
+						local function AddUserToTextChatSpeakers(player: Player, speaker: TextSource)
+							if not server.Variables.TextChatSpeakers[player] then
+								server.Variables.TextChatSpeakers[player] = {}
+							end 
+							table.insert(server.Variables.TextChatSpeakers[player], speaker)
+							--// Check if the player is muted or not
+							speaker:SetAttribute("OriginalCanSend", speaker.CanSend)
+							if server.Admin.IsMuted(player) then
+								speaker.CanSend = false
+							end
+						end
+						local function SpeakerAdded(speaker: TextSource) 
+							if speaker.UserId and speaker.UserId > 0 then
+								local Player = service.Players:GetPlayerByUserId(speaker.UserId)
+								if Player then
+									AddUserToTextChatSpeakers(Player, speaker)
+								end
+							end
+						end
+						local function SpeakerRemoved(speaker: TextSource)
+							if speaker.UserId and speaker.UserId > 0 then
+								local Player = service.Players:GetPlayerByUserId(speaker.UserId)
+								local Tab = server.Variables.TextChatSpeakers[Player]
+								if Tab then
+									local index = table.find(Tab, speaker)
+									while index do
+										table.remove(Tab, index)
+										index = table.find(Tab, speaker)
+									end
+									task.defer(function()
+										if #Tab == 0 then
+											server.Variables.TextChatSpeakers[Player] = nil
+										end
+									end)
+								end
+							end
+						end
+						
+						textchannel.ChildAdded:Connect(function(textSource)
+							if textSource:IsA("TextSource") then
+								SpeakerAdded(textSource)
+							end
+						end)
+						
+						textchannel.ChildRemoved:Connect(function(textSource)
+							if textSource:IsA("TextSource") then
+								SpeakerRemoved(textSource)
+							end
+						end)
+						
+						for _,inst in textchannel:GetChildren() do 
+							if inst:IsA("TextSource") then
+								SpeakerAdded(inst)
+							end
+						end
+						
+					end
+				end
+				
+				--// Only set this up once
+				--// This is for commands to tell us when a player should be muted
+				if not Settings.OverrideChatCallbacks then 
+					service.Events.PlayerMuted:Connect(function(data)
+						local PlayerId = data.Target;
+						local ModId = data.Moderator;
+
+						local Player = service.Players:GetPlayerByUserId(PlayerId)
+						--// Loop through CanSend of a speaker
+						for _,speakers : TextSource in if Player then server.Variables.TextChatSpeakers[Player] or {} else {} do 
+							speakers.CanSend = false
+						end
+						if Player then
+							AddLog("Script", `Muted player {Player.Name}:{Player.UserId} using CanSend method`)
+						end
+					end)
+					service.Events.PlayerUnMuted:Connect(function(data)
+						local PlayerId = data.Target;
+						local ModId = data.Moderator;
+
+						local Player = service.Players:GetPlayerByUserId(PlayerId)
+						--// Loop through CanSend of a speaker
+						for _,speakers : TextSource in if Player then server.Variables.TextChatSpeakers[Player] or {} else {} do 
+							local original = speakers:GetAttribute("OriginalCanSend")
+							speakers.CanSend = if original ~= nil then original else true
+						end
+						if Player then
+							AddLog("Script", `UnMuted player {Player.Name}:{Player.UserId} via CanSend method`)
+						end
+					end)
+					service.Events.MutedPlayerChat_UnFiltered:Connect(function(p, ...)
+						server.Remote.Send(p, "Function", "DisplaySystemMessageInTextChat", nil, `<font color="rgb(130, 100, 130)">[Adonis Chat]: </font><b>You are muted!</b> Other players cannot see your messages.`)
+					end)
+				end
+					
+
+				local function onTextChannelsAdded(textChannels)
+					textChannels.ChildAdded:Connect(function(child)
+						if child:IsA("TextChannel") then
+							task.spawn(onNewTextchannel, child)
+						end
+					end)
+				
+					for _, v in textChannels:GetChildren() do
+						if v:IsA("TextChannel") then
+							task.spawn(onNewTextchannel, v)
+						end
+					end
+				end
+
+				service.TextChatService.ChildAdded:Connect(function(child)
+					if child.Name == "TextChannels" then
+						task.spawn(onTextChannelsAdded, child)
+					end
+				end)
+				
+				if service.TextChatService:FindFirstChild("TextChannels") then
+					task.spawn(pcall, onTextChannelsAdded, service.TextChatService:FindFirstChild("TextChannels"))
+				end
+
+				AddLog("Script", "TextChatService Handler Loaded")
+			end
+
+			--// Support for legacy Lua chat system
+			--// ChatService mute handler (credit to Coasterteam)
+			AddLog("Script", "Starting loading of legacy chatservice handler")
+			local chatService = Functions.GetChatService(300)
 			if chatService then
 				chatService:RegisterProcessCommandsFunction("ADONIS_CMD", function(speakerName, message)
 					local speaker = chatService:GetSpeaker(speakerName)
@@ -191,16 +367,16 @@ return function(Vargs, GetEnv)
 	local function RunAfterPlugins(data)
 		--// Backup Map
 		if Settings.AutoBackup then
-			TrackTask("Thread: Initial Map Backup", Admin.RunCommand, Settings.Prefix.."backupmap")
+			TrackTask("Thread: Initial Map Backup", Admin.RunCommand, false, `{Settings.Prefix}backupmap`)
 		end
 
 		--// Run OnStartup Commands
 		for i,v in Settings.OnStartup do
-			warn("Running startup command ".. tostring(v))
-			TrackTask("Thread: Startup_Cmd: ".. tostring(v), Admin.RunCommand, v)
+			print(`Running startup command {v}`)
+			TrackTask(`Thread: Startup_Cmd: {v}`, Admin.RunCommand, false, v)
 			AddLog("Script", {
-				Text = "Startup: Executed "..tostring(v);
-				Desc = "Executed startup command; "..tostring(v);
+				Text = `Startup: Executed {v}`;
+				Desc = `Executed startup command; {v}`;
 			})
 		end
 
@@ -231,7 +407,7 @@ return function(Vargs, GetEnv)
 		--// First try to extract args info from the alias
 		for arg in string.gmatch(alias, "<(%S+)>") do
 			if arg ~= "" and arg ~= " " then
-				local arg = "<".. arg ..">"
+				local arg = `<{arg}>`
 				if not uniqueArgs[arg] then
 					numArgs += 1
 					uniqueArgs[arg] = true
@@ -244,7 +420,7 @@ return function(Vargs, GetEnv)
 		if numArgs == 0 then
 			for arg in string.gmatch(aliasCmd, "<(%S+)>") do
 				if arg ~= "" and arg ~= " " then
-					local arg = "<".. arg ..">"
+					local arg = `<{arg}>`
 					if not uniqueArgs[arg] then --// Get only unique placeholder args, repeats will be matched to the same arg pos
 						numArgs += 1
 						uniqueArgs[arg] = true --// :cmd <arg1> <arg2>
@@ -279,6 +455,7 @@ return function(Vargs, GetEnv)
 		CommandCache = {};
 		SlowCache = {};
 		UserIdCache = {};
+		UsernameCache = {};
 		GroupsCache = {};
 
 		BlankPrefix = false;
@@ -436,7 +613,8 @@ return function(Vargs, GetEnv)
 
 			local pUnWrapped = service.UnWrap(pObj)
 
-			local plr: Player = if pType == "number" then service.Players:GetPlayerByUserId(pObj)
+			local plr: Player = if pType == "userdata" and pObj:IsA("Player") then pObj
+				elseif pType == "number" then service.Players:GetPlayerByUserId(pObj)
 				elseif pType == "string" then service.Players:FindFirstChild(pObj)
 				elseif typeof(pUnWrapped) == "Instance" and pUnWrapped:IsA("Player") then pUnWrapped
 				elseif pType == "userdata" then service.Players:GetPlayerByUserId(pObj.UserId)
@@ -477,7 +655,7 @@ return function(Vargs, GetEnv)
 					return gamepassId and service.CheckPassOwnership(plr, gamepassId)
 				else
 					local username, userId = string.match(check, "^(.*):(.*)")
-					if username and userId and (plr.UserId == userId or string.lower(plr.Name) == string.lower(username)) then
+					if username and userId and (plr.UserId == tonumber(userId) or string.lower(plr.Name) == string.lower(username)) then
 						return true
 					end
 
@@ -546,8 +724,8 @@ return function(Vargs, GetEnv)
 			data.LastLevelUpdate = os.time()
 
 			AddLog("Script", {
-				Text = "Updating cached level for ".. p.Name;
-				Desc = "Updating the cached admin level for ".. p.Name;
+				Text = `Updating cached level for {p.Name}`;
+				Desc = `Updating the cached admin level for {p.Name}`;
 				Player = p;
 			})
 
@@ -577,9 +755,9 @@ return function(Vargs, GetEnv)
 
 				if clients[key] and level and newLevel and type(p) == "userdata" and p:IsA("Player") then
 					if newLevel < level then
-						Functions.Hint("Your admin level has been reduced to ".. newLevel.." [".. (newRank or "Unknown") .."]", {p})
+						Functions.Hint(`Your admin level has been reduced to {newLevel} [{newRank or "Unknown"}]`, {p})
 					elseif newLevel > level then
-						Functions.Hint("Your admin level has been increased to ".. newLevel .." [".. (newRank or "Unknown") .."]", {p})
+						Functions.Hint(`Your admin level has been increased to {newLevel} [{newRank or "Unknown"}]`, {p})
 					end
 				end
 
@@ -650,7 +828,7 @@ return function(Vargs, GetEnv)
 					return true
 				end
 
-				if p.UserId == -1 then --// To account for player emulators in multi-client Studio tests
+				if p.UserId == -1 and Variables.IsStudio then --// To account for player emulators in multi-client Studio tests
 					return true
 				end
 			end
@@ -724,7 +902,7 @@ return function(Vargs, GetEnv)
 						table.remove(list, ind)
 
 						if not temp and Settings.SaveAdmins then
-							TrackTask("Thread: RemoveAdmin", Core.DoSave, {
+							TrackTask("Thread: RemoveAdmin", Core.DoSave, false, {
 								Type = "TableRemove";
 								Table = {"Settings", "Ranks", listName, "Users"};
 								Value = check;
@@ -765,7 +943,7 @@ return function(Vargs, GetEnv)
 				local index,value
 
 				for ind,ent in list do
-					if (type(ent)=="number" or type(ent)=="string") and (ent==p.UserId or string.lower(ent)==string.lower(p.Name) or string.lower(ent)==string.lower(p.Name..":"..p.UserId)) then
+					if (type(ent)=="number" or type(ent)=="string") and (ent==p.UserId or string.lower(ent)==string.lower(p.Name) or string.lower(ent)==string.lower(`{p.Name}:{p.UserId}`)) then
 						index = ind
 						value = ent
 					end
@@ -776,13 +954,13 @@ return function(Vargs, GetEnv)
 				end
 			end
 
-			local value = p.Name ..":".. p.UserId
+			local value = `{p.Name}:{p.UserId}`
 
 			if newList then
 				table.insert(newList, value)
 
 				if Settings.SaveAdmins and levelName and not temp then
-					TrackTask("Thread: SaveAdmin", Core.DoSave, {
+					TrackTask("Thread: SaveAdmin", Core.DoSave, false, {
 						Type = "TableAdd";
 						Table = {"Settings", "Ranks", levelName, "Users"};
 						Value = value
@@ -836,7 +1014,7 @@ return function(Vargs, GetEnv)
 					if ban.EndTime-os.time() <= 0 then
 						table.remove(Core.Variables.TimeBans, ind)
 					else
-						return true, "\n Reason: "..(ban.Reason or "(No reason provided.)").."\n Banned until ".. service.FormatTime(ban.EndTime, {WithWrittenDate = true})
+						return true, `\n Reason: {ban.Reason or "(No reason provided.)"}\n Banned until {service.FormatTime(ban.EndTime, {WithWrittenDate = true})}`
 					end
 				end
 			end
@@ -865,7 +1043,7 @@ return function(Vargs, GetEnv)
 				Moderator = if moderator then service.FormatPlayer(moderator) else "%SYSTEM%";
 			}
 
-			table.insert(Settings.Banned, value)--p.Name..':'..p.UserId
+			table.insert(Settings.Banned, value)--`{p.Name}:{p.UserId}`
 
 			if doSave then
 				Core.DoSave({
@@ -881,7 +1059,7 @@ return function(Vargs, GetEnv)
 				if not service.Players:FindFirstChild(p.Name) then
 					Remote.Send(p,'Function','KillClient')
 				else
-					if p then pcall(function() p:Kick(Variables.BanMessage .. " | Reason: "..(value.Reason or "No reason provided")) end) end
+					if p then pcall(function() p:Kick(`{Variables.BanMessage} | Reason: {value.Reason or "No reason provided"}`) end) end
 				end
 			end
 
@@ -911,7 +1089,7 @@ return function(Vargs, GetEnv)
 				if not service.Players:FindFirstChild(p.Name) then
 					Remote.Send(p, "Function", "KillClient")
 				else
-					if p then pcall(function() p:Kick(Variables.BanMessage .. " | Reason: "..(value.Reason or "No reason provided")) end) end
+					if p then pcall(function() p:Kick(`{Variables.BanMessage} | Reason: {value.Reason or "No reason provided"}`) end) end
 				end
 			end
 
@@ -939,7 +1117,7 @@ return function(Vargs, GetEnv)
 				if cName then
 					if string.lower(cName) == string.lower(name) then
 						return true
-					elseif id and cId and id == cId then
+					elseif id and cId and id == tonumber(cId) then
 						return true
 					end
 				else
@@ -991,13 +1169,15 @@ return function(Vargs, GetEnv)
 				local cmdArgs = com.Args or com.Arguments
 				local args = Admin.GetArgs(coma, #cmdArgs, ...)
 
-				--local task,ran,error = service.Threads.TimeoutRunTask("SERVER_COMMAND: "..coma,com.Function,60*5,false,args)
-				--[[local ran, error = TrackTask("Command: ".. tostring(coma), com.Function, false, args)
+				--local task,ran,error = service.Threads.TimeoutRunTask(`SERVER_COMMAND: {coma}`,com.Function,60*5,false,args)
+				--[[local ran, error = TrackTask(`Command: {coma}`, com.Function, false, args)
 				if error then
 					--logError("SERVER","Command",error)
 				end]]
 
-				TrackTask("Command: ".. coma, com.Function, false, args)
+				TrackTask(`Command: {coma}`, com.Function, function(err)
+					warn(`Encountered an error while running a command: {coma}\n{err}\n{debug.traceback()}`)
+				end, nil, args)
 			end
 		end;
 
@@ -1009,25 +1189,30 @@ return function(Vargs, GetEnv)
 				local cmdArgs = com.Args or com.Arguments
 				local args = Admin.GetArgs(coma, #cmdArgs, ...)
 
-				local ran, error = TrackTask(plr.Name .. ": ".. coma, com.Function, plr, args, {
-					PlayerData = {
-						Player = plr;
-						Level = adminLvl;
-						isDonor = ((Settings.DonorCommands or com.AllowDonors) and Admin.CheckDonor(plr)) or false;
+				local ran, error = TrackTask(
+					`{plr.Name}: {coma}`,
+					com.Function,
+					function(err)
+						err = string.match(err, ":(.+)$") or "Unknown error"
+						Remote.MakeGui(plr, "Output", {
+							Title = "",
+							Message = error,
+							Color = Color3.new(1, 0, 0),
+						})
+						warn(`Encountered an error while running a command: {coma}\n{err}\n{debug.traceback()}`)
+					end,
+					plr,
+					args,
+					{
+						PlayerData = {
+							Player = plr,
+							Level = adminLvl,
+							isDonor = ((Settings.DonorCommands or com.AllowDonors) and Admin.CheckDonor(plr)) or false,
+						},
 					}
-				})
+				)
 
-				--local task,ran,error = service.Threads.TimeoutRunTask("COMMAND:"..plr.Name..": "..coma,com.Function,60*5,plr,args)
-				if error then
-					--logError(plr,"Command",error)
-					error = string.match(error, ":(.+)$") or "Unknown error"
-					Remote.MakeGui(plr, "Output", {
-						Title = '';
-						Message = error;
-						Color = Color3.new(1, 0, 0)
-					})
-					return;
-				end
+				--local task,ran,error = service.Threads.TimeoutRunTask(`COMMAND:{plr.Name}: {coma}`,com.Function,60*5,plr,args)
 			end
 		end;
 
@@ -1035,20 +1220,27 @@ return function(Vargs, GetEnv)
 			local ind, com = Admin.GetCommand(coma)
 			if com and com.AdminLevel == 0 then
 				local cmdArgs = com.Args or com.Arguments
-				local args = Admin.GetArgs(coma,#cmdArgs,...)
-				local _, error = TrackTask(plr.Name ..": ".. coma, com.Function, plr, args, {PlayerData = {
-					Player = plr;
-					Level = 0;
-					isDonor = false;
-				}})
-				if error then
-					error = string.match(error, ":(.+)$") or "Unknown error"
-					Remote.MakeGui(plr, "Output", {
-						Title = "";
-						Message = error;
-						Color = Color3.new(1, 0, 0)
-					})
-				end
+				local args = Admin.GetArgs(coma, #cmdArgs, ...)
+				local _, error = TrackTask(
+					`{plr.Name}: {coma}`,
+					com.Function,
+					function(err)
+						err = string.match(err, ":(.+)$") or "Unknown error"
+						Remote.MakeGui(plr, "Output", {
+							Title = "",
+							Message = error,
+							Color = Color3.new(1, 0, 0),
+						})
+						warn(`Encountered an error while running a command: {coma}\n{err}\n{debug.traceback()}`)
+					end,
+					plr,
+					args,
+					{ PlayerData = {
+						Player = plr,
+						Level = 0,
+						isDonor = false,
+					} }
+				)
 			end
 		end;
 
@@ -1067,13 +1259,69 @@ return function(Vargs, GetEnv)
 
 			Admin.PrefixCache = tempPrefix
 			Admin.CommandCache = tempTable
+
+			-- // Support for commands to be ran via TextChat
+			task.spawn(function()
+				local container = service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService and service.TextChatService:WaitForChild("TextChatCommands")
+
+				if container then
+					for _, v in container:GetChildren() do
+						if string.sub(v.Name, 1, 7) == "Adonis_" then
+							v:Destroy()
+						end
+					end
+
+					local blacklistedCommands = {}
+
+					for _, v in container:GetDescendants() do
+						if v:IsA("TextChatCommand") then
+							blacklistedCommands[v.PrimaryAlias] = true
+							blacklistedCommands[v.SecondaryAlias] = true
+						end
+					end
+
+					for name, data in Commands do
+						local command1, command2 = nil, nil
+
+						if type(data) ~= "table" or data.Hidden then
+							continue
+						end
+
+						for _, v in data.Commands do
+							if not blacklistedCommands["/"..data.Prefix..v] then
+								if not command1 then
+									command1 = "/"..data.Prefix..v
+								else
+									command2 = "/"..data.Prefix..v
+								end
+							end
+						end
+
+						if command1 then
+							local command = Instance.new("TextChatCommand")
+
+							command.Name = "Adonis_"..name
+							command.PrimaryAlias = command1
+							command.SecondaryAlias = command2 or ""
+							command.Parent = container
+							command.Triggered:Connect(function(textSource, text)
+								local player = service.Players:GetPlayerByUserId(textSource.UserId)
+
+								if player then
+									Process.Command(player, string.sub(text, 2))
+								end
+							end)
+						end
+					end
+				end
+			end)
 		end;
 
 		GetCommand = function(Command)
 			if Admin.PrefixCache[string.sub(Command, 1, 1)] or Variables.BlankPrefix then
 				local matched
 				matched = if string.find(Command, Settings.SplitKey) then
-					string.match(Command, "^(%S+)"..Settings.SplitKey)
+					string.match(Command, `^(%S+){Settings.SplitKey}`)
 					else string.match(Command, "^(%S+)")
 
 				if matched then
@@ -1098,7 +1346,7 @@ return function(Vargs, GetEnv)
 			end
 
 			if string.find(Command, Settings.SplitKey) then
-				matched = string.match(Command, "^(%S+)"..Settings.SplitKey)
+				matched = string.match(Command, `^(%S+){Settings.SplitKey}`)
 			else
 				matched = string.match(Command, "^(%S+)")
 			end
@@ -1134,7 +1382,7 @@ return function(Vargs, GetEnv)
 		FormatCommandArguments = function(command)
 			local text = ""
 			for i, arg in command.Args do
-				text ..= "<"..arg..">"
+				text ..= `<{arg}>`
 				if i < #command.Args then
 					text ..= Settings.SplitKey
 				end
@@ -1143,7 +1391,7 @@ return function(Vargs, GetEnv)
 		end;
 
 		FormatCommand = function(command, cmdn)
-			local text = command.Prefix..command.Commands[cmdn or 1]
+			local text = (command.Prefix or "")..tostring(command.Commands[cmdn or 1])
 			if #command.Args > 0 then
 				text ..= Settings.SplitKey .. Admin.FormatCommandArguments(command)
 			end
@@ -1158,10 +1406,10 @@ return function(Vargs, GetEnv)
 			for i, lvl in levels do
 				if type(lvl) == "number" then
 					local list, name, data = Admin.LevelToList(lvl)
-					permissionDesc ..= (name or "No Rank") .."; Level ".. lvl
+					permissionDesc ..= `{name or "No Rank"}; Level {lvl}`
 				elseif type(lvl) == "string" then
 					local numLvl = Admin.StringToComLevel(lvl)
-					permissionDesc ..= lvl .. "; Level ".. (numLvl or "Unknown")
+					permissionDesc ..= `{lvl}; Level {numLvl or "Unknown"}`
 				end
 
 				if i < #levels then
@@ -1185,11 +1433,11 @@ return function(Vargs, GetEnv)
 			local playerPrefix = Settings.PlayerPrefix;
 			local prefix = Settings.Prefix;
 			local blacklist = {
-				[playerPrefix.. "alias"] = true;
-				[playerPrefix.. "newalias"] = true;
-				[playerPrefix.. "removealias"] = true;
-				[playerPrefix.. "client"] = true;
-				[playerPrefix.. "userpanel"] = true;
+				[`{playerPrefix}alias`] = true;
+				[`{playerPrefix}newalias`] = true;
+				[`{playerPrefix}removealias`] = true;
+				[`{playerPrefix}client`] = true;
+				[`{playerPrefix}userpanel`] = true;
 				[":adonissettings"] = true;
 
 			}
@@ -1198,7 +1446,7 @@ return function(Vargs, GetEnv)
 		end;
 
 		GetArgs = function(msg, num, ...)
-			local args = Functions.Split((string.match(msg, "^.-"..Settings.SplitKey..'(.+)') or ''),Settings.SplitKey,num) or {}
+			local args = Functions.Split((string.match(msg, `^.-{Settings.SplitKey}(.+)`) or ''),Settings.SplitKey,num) or {}
 			for _, v in {...} do
 				table.insert(args, v)
 			end
@@ -1215,7 +1463,7 @@ return function(Vargs, GetEnv)
 					local tAlias = stripArgPlaceholders(alias)
 					if not Admin.CheckAliasBlacklist(tAlias) then
 						local escAlias = EscapeSpecialCharacters(tAlias)
-						if string.match(msg, "^"..escAlias) or string.match(msg, "%s".. escAlias) then
+						if string.match(msg, `^{escAlias}`) or string.match(msg, `%s{escAlias}`) then
 							msg = FormatAliasArgs(alias, cmd, msg)
 						end
 					end
@@ -1227,7 +1475,7 @@ return function(Vargs, GetEnv)
 				local tAlias = stripArgPlaceholders(alias)
 				if not CheckAliasBlacklist(tAlias) then
 					local escAlias = EscapeSpecialCharacters(tAlias)
-					if string.match(msg, "^"..escAlias) or string.match(msg, "%s".. escAlias) then
+					if string.match(msg, `^{escAlias}`) or string.match(msg, `%s{escAlias}`) then
 						msg = FormatAliasArgs(alias, cmd, msg)
 					end
 				end
@@ -1322,7 +1570,7 @@ return function(Vargs, GetEnv)
 
 				local cmdFullName = cmd._fullName or (function()
 					local aliases = cmd.Aliases or cmd.Commands or {}
-					cmd._fullName = cmd.Prefix..(aliases[1] or service.getRandom().."-RANDOM_COMMAND")
+					cmd._fullName = `{cmd.Prefix}{aliases[1] or `{service.HttpService:GenerateGUID(false)}-RANDOM_COMMAND`}`
 					return cmd._fullName
 				end)()
 
@@ -1391,7 +1639,7 @@ return function(Vargs, GetEnv)
 
 			local cmdFullName = cmd._fullName or (function()
 				local aliases = cmd.Aliases or cmd.Commands or {}
-				cmd._fullName = cmd.Prefix..(aliases[1] or service.getRandom().."-RANDOM_COMMAND")
+				cmd._fullName = `{cmd.Prefix}{aliases[1] or `{service.HttpService:GenerateGUID(false)}-RANDOM_COMMAND`}`
 				return cmd._fullName
 			end)()
 
@@ -1461,19 +1709,19 @@ return function(Vargs, GetEnv)
 		CheckAuthority = function(p, target, actionName, allowSelf)
 			if p == target then
 				if allowSelf == false then
-					Functions.Hint("You cannot "..actionName.." yourself", {p})
+					Functions.Hint(`You cannot {actionName} yourself`, {p})
 					return false
 				end
 
 				return allowSelf or Remote.GetGui(p, "YesNoPrompt", {
-					Question = "Are you sure you want to "..actionName.." yourself?";
+					Question = `Are you sure you want to {actionName} yourself?`;
 				}) == "Yes"
 
 			elseif Admin.GetLevel(p) > Admin.GetLevel(target) then
 				return true
 			end
 
-			Functions.Hint("You don't have permission to "..actionName.." "..service.FormatPlayer(target), {p})
+			Functions.Hint(`You don't have permission to {actionName} {service.FormatPlayer(target)}`, {p})
 			return false
 		end;
 	}

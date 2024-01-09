@@ -194,7 +194,7 @@ return function(data, env)
 
 	task.spawn(function()
 		local sound = Instance.new("Sound",service.LocalContainer())
-		sound.SoundId = 'rbxassetid://'.."203785584"--client.NotificationSound
+		sound.SoundId = 'rbxassetid://203785584'--client.NotificationSound
 		sound.Volume = 0.2
 		sound:Play()
 		wait(0.5)
@@ -310,8 +310,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">4</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+							<Weight>700</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Bold.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -504,8 +508,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -591,8 +599,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -675,8 +687,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -846,12 +862,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Message</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -946,8 +964,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -1030,8 +1052,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -1292,12 +1318,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Output</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -1392,8 +1420,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">45</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Ubuntu.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/Ubuntu-Regular.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -1476,8 +1508,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -1718,12 +1754,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Notif</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -1836,8 +1874,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -1912,12 +1954,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Window</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -1952,8 +1996,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -2036,8 +2084,12 @@ end]]></ProtectedString>
 						<bool name="ClearTextOnFocus">true</bool>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -2519,8 +2571,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -3013,10 +3069,12 @@ return function(data, env)
 		local label = point:FindFirstChild("Label")
 
 		if label then
-			local rounder = service.New("UICorner",{
-				CornerRadius = UDim.new(0,5.5);
-				Parent = point;
-			});
+			if not point:FindFirstChildOfClass("UICorner") then
+				service.New("UICorner", {
+					CornerRadius = UDim.new(0, 5);
+					Parent = point;
+				})
+			end
 
 			ent.MouseLeave:Connect(function(x,y)
 				if inExpandable == ent then
@@ -3141,10 +3199,15 @@ return function(data, env)
 
 
 		local instancefinally = create("TextButton", data)
-		local rounder = service.New("UICorner",{
-			CornerRadius = UDim.new(0.2,0);
-			Parent = instancefinally;
-		});
+		local uiCorner = instancefinally:FindFirstChildOfClass("UICorner")
+		if not uiCorner then
+			service.New("UICorner", {
+				CornerRadius = UDim.new(0.2, 0);
+				Parent = instancefinally;
+			})
+		else
+			uiCorner.CornerRadius = UDim.new(0.2, 0)
+		end
 		return instancefinally
 	end
 
@@ -3565,7 +3628,7 @@ return function(data, env)
 			if options then
 				for i,v in next,options do
 					local button = scroller:Add("TextButton", {
-						Text = "  ".. tostring(v);
+						Text = `  {v}`;
 						Size = UDim2.new(1, -10, 0, 30);
 						Position = UDim2.new(0, 5, 0, 30*(i-1));
 						ZIndex = menu.ZIndex;
@@ -3725,7 +3788,7 @@ return function(data, env)
 					end
 
 					local label = create("TextLabel",{
-						Text = " "..tostring(text);
+						Text = ` {text}`;
 						ToolTip = desc;
 						Size = UDim2.new(1,-5,0,(entProps.ySize or 20));
 						Visible = true;
@@ -4027,7 +4090,7 @@ return function(data, env)
 				local done = false
 				Refreshing = true
 
-				spawn(function()
+				task.spawn(function()
 					while gTable.Active and not done do
 						for i = 0,180,10 do
 							rSpinner.Rotation = -i
@@ -4473,7 +4536,7 @@ end
 
 local function CircleClick(Button, X, Y)
 	local duration = 0.5
-	spawn(function()
+	task.spawn(function()
 		local effect = Instance.new("ImageLabel", Button)
 		effect.AnchorPoint = Vector2.new(0.5, 0.5)
 		effect.BorderSizePixel = 0
@@ -4623,8 +4686,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -4707,8 +4774,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -4804,8 +4875,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -4888,8 +4963,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -5203,8 +5282,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">1</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -5287,8 +5370,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -5453,8 +5540,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">1</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -5537,8 +5628,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -5622,8 +5717,12 @@ end]]></ProtectedString>
 						<bool name="ClearTextOnFocus">true</bool>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -5717,8 +5816,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -5805,8 +5908,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">0</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/LegacyArial.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -5892,8 +5999,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">2</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+							<Weight>700</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -6186,8 +6297,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">45</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Ubuntu.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/Ubuntu-Regular.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -6380,8 +6495,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">45</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/Ubuntu.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/Ubuntu-Regular.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -6573,8 +6692,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">true</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -8012,8 +8135,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">3</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/SourceSansPro.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/SourceSansPro-Regular.ttf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -8077,12 +8204,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">TopBar</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -8117,8 +8246,12 @@ end]]></ProtectedString>
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -8289,17 +8422,17 @@ return function(data, env)
 	if not TopbarMatchAdmin then
 		local text=TopbarText
 		if text=="%TIME" then
-			cPcall(function()
+			task.spawn(pcall, function()
 				repeat
 					local t4=GetTime()
 					local nt4
 					local hour=t4:match("%d+")
 					if tonumber(hour)>12 or tonumber(hour)<1 then
-						nt4=math.abs(tonumber(hour)-12)..t4:match(":%d+").." PM"
+						nt4=`{math.abs(tonumber(hour)-12)}{t4:match(":%d+")} PM`
 					else
-						nt4=t4.." AM"
+						nt4=`{t4} AM`
 					end
-					bar.Text=t4.." / "..nt4
+					bar.Text=`{t4} / {nt4}`
 				until not wait(1)
 			end)
 		else
@@ -8395,7 +8528,7 @@ end]]></ProtectedString>
 				<int64 name="SourceAssetId">-1</int64>
 				<token name="Style">0</token>
 				<BinaryString name="Tags"></BinaryString>
-				<bool name="Visible">false</bool>
+				<bool name="Visible">true</bool>
 				<int name="ZIndex">1</int>
 			</Properties>
 			<Item class="Frame" referent="RBXEE7C14EE05CC4E649BB9AA463F768C46">
@@ -8483,8 +8616,12 @@ end]]></ProtectedString>
 						<int name="BorderSizePixel">1</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -8707,12 +8844,14 @@ end]]></ProtectedString>
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">0</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Notify</string>
 				<bool name="ResetOnSpawn">false</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -8846,17 +8985,17 @@ return function(data, env)
 	if not tim then
 		local _,time = message:gsub(" ","")
 		time = math.clamp(time/2,4,11)+1
-		Left.Text = '['..time..']'
+		Left.Text = `[{time}]`
 		for i=time,1,-1 do
 			if not Left then break end
-			Left.Text = '['..i..']'
+			Left.Text = `[{i}]`
 			wait(1)
 		end
 	else
-		Left.Text = '['..tim..']'
+		Left.Text = `[{tim}]`
 		for i=tim,1,-1 do
 			if not Left then break end
-			Left.Text = '['..i..']'
+			Left.Text = `[{i}]`
 			wait(1)
 		end
 	end
@@ -9034,8 +9173,12 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">17</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -9118,8 +9261,12 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">17</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -9214,8 +9361,12 @@ end]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="Font">17</token>
-							<Font name="FontFace"></Font>
+							<Font name="FontFace">
+								<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+								<Weight>400</Weight>
+								<Style>Normal</Style>
+								<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+							</Font>
 							<int name="LayoutOrder">0</int>
 							<float name="LineHeight">1</float>
 							<int name="MaxVisibleGraphemes">-1</int>
@@ -9358,8 +9509,7 @@ return function(data, env)
 	toggle.ZIndex = 67
 	toggle1.Size = UDim2.new(0, 40, 0, 40)
 		toggle.Image =
-			"https://www.roblox.com/headshot-thumbnail/image?userId=" ..
-			localplayer.UserId .. "&width=420&height=420&format=png"
+			`https://www.roblox.com/headshot-thumbnail/image?userId={localplayer.UserId}&width=420&height=420&format=png`
 
 
 
@@ -9391,12 +9541,14 @@ end
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<bool name="AutoLocalize">false</bool>
+				<bool name="ClipToDeviceSafeArea">true</bool>
 				<int name="DisplayOrder">9000000</int>
 				<bool name="Enabled">true</bool>
-				<bool name="IgnoreGuiInset">false</bool>
 				<string name="Name">Console</string>
 				<bool name="ResetOnSpawn">true</bool>
 				<Ref name="RootLocalizationTable">null</Ref>
+				<token name="SafeAreaCompatibility">1</token>
+				<token name="ScreenInsets">2</token>
 				<token name="SelectionBehaviorDown">0</token>
 				<token name="SelectionBehaviorLeft">0</token>
 				<token name="SelectionBehaviorRight">0</token>
@@ -9579,8 +9731,12 @@ end
 						<bool name="ClearTextOnFocus">false</bool>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="Font">17</token>
-						<Font name="FontFace"></Font>
+						<Font name="FontFace">
+							<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+							<Weight>400</Weight>
+							<Style>Normal</Style>
+							<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+						</Font>
 						<int name="LayoutOrder">0</int>
 						<float name="LineHeight">1</float>
 						<int name="MaxVisibleGraphemes">-1</int>
@@ -9773,8 +9929,12 @@ end
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">17</token>
-					<Font name="FontFace"></Font>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/GothamSSm.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/GothamSSm-Book.otf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -10055,7 +10215,7 @@ return function(data, env)
 		if c == 'Text' and text.Text ~= '' and open then
 			if string.sub(text.Text, string.len(text.Text)) == "	" then
 				if players:FindFirstChild("Entry 0") then
-					text.Text = (string.sub(text.Text, 1, (string.len(text.Text) - 1))..players["Entry 0"].Text).." "
+					text.Text = `{string.sub(text.Text, 1, (string.len(text.Text) - 1))}{players["Entry 0"].Text} `
 				elseif scroll:FindFirstChild("Entry 0") then
 					text.Text = string.split(scroll["Entry 0"].Text, "<")[1]
 				else
@@ -10068,18 +10228,18 @@ return function(data, env)
 			players:ClearAllChildren()
 
 			local nText = text.Text
-			if string.match(nText,".*"..batchKey.."([^']+)") then
-				nText = string.match(nText,".*"..batchKey.."([^']+)")
+			if string.match(nText,`.*{batchKey}([^']+)`) then
+				nText = string.match(nText,`.*{batchKey}([^']+)`)
 				nText = string.match(nText,"^%s*(.-)%s*$")
 			end
 
 			local pNum = 0
-			local pMatch = string.match(nText,".+"..splitKey.."(.*)$")
+			local pMatch = string.match(nText,`.+{splitKey}(.*)$`)
 			for i,v in next,service.Players:GetPlayers() do
-				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,splitKey.."$") then
+				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,`{splitKey}$`) then
 					local new = entry:Clone()
 					new.Text = tostring(v)
-					new.Name = "Entry "..pNum
+					new.Name = `Entry {pNum}`
 					new.TextXAlignment = "Right"
 					new.Visible = true
 					new.Parent = players
@@ -10096,7 +10256,7 @@ return function(data, env)
 
 			local num = 0
 			for i,v in next,commands do
-				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText),"^(.-)"..splitKey) or string.lower(nText), 1, true) then
+				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText),`^(.-){splitKey}`) or string.lower(nText), 1, true) then
 					if not scrollOpen then
 						scrollOpenTween:Play();
 						--frame.Size = UDim2.new(1,0,0,140)
@@ -10108,7 +10268,7 @@ return function(data, env)
 					b.Visible = true
 					b.Parent = scroll
 					b.Text = v
-					b.Name = "Entry "..num
+					b.Name = `Entry {num}`
 					b.Position = UDim2.new(0,0,0,20*num)
 					b.Activated:Connect(function()
 						text.Text = b.Text:gsub("<.->", "")
@@ -10316,15 +10476,15 @@ return function(data, env)
 
 		for i,v in next,(list  or {}) do
 			if type(v) == "table" then
-				loading.Text = "Loading tracks ("..i.."/"..#list..")";
+				loading.Text = `Loading tracks ({i}/{#list})`;
 				local success, product_info = pcall(function()
 					return service.MarketplaceService:GetProductInfo(v.ID, Enum.InfoType.Asset)
 				end)
 				if product_info.AssetTypeId == 3 then
 					table.insert(availableSongLists[tab.Name], v)
 					frame:Add("TextButton", {
-						Text = "  " .. (num + 1) .. ") " .. (success and product_info.Name or "[ERROR] "..v.Name);
-						ToolTip = "Name: ".. v.Name .." | ID: "..v.ID;
+						Text = `  {num + 1}) {success and product_info.Name or `[ERROR] {v.Name}`}`;
+						ToolTip = `Name: {v.Name} | ID: {v.ID}`;
 						Size = UDim2.new(1, 0, 0, 25);
 						Position = UDim2.new(0, 0, 0, num*25);
 						BackgroundTransparency = (num%2 == 0 and 0) or 0.2;
@@ -10336,7 +10496,7 @@ return function(data, env)
 							button.BackgroundTransparency = 0.5
 
 							soundInstance:Stop()
-							soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. v.ID;
+							soundInstance.SoundId = `http://www.roblox.com/asset/?id={v.ID}`;
 							soundInstance:Play()
 
 							heading.Text = success and product_info.Name or v.Name
@@ -10360,12 +10520,12 @@ return function(data, env)
 					local toPlay = activeSongList[(rnum)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10377,12 +10537,12 @@ return function(data, env)
 					local toPlay = activeSongList[(selected.Index +1)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10577,7 +10737,7 @@ return function(data, env)
 				TextChanged = function(text, enter, new)
 					if enter then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. text;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={text}`;
 						soundInstance:Play()
 					end
 				end
@@ -10654,12 +10814,12 @@ return function(data, env)
 					local toPlay = activeSongList[(rnum)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10671,12 +10831,12 @@ return function(data, env)
 					local toPlay = activeSongList[(selected.Index -1)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10724,12 +10884,12 @@ return function(data, env)
 					local toPlay = activeSongList[(rnum)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10741,12 +10901,12 @@ return function(data, env)
 					local toPlay = activeSongList[(selected.Index +1)]
 					if toPlay then
 						soundInstance:Stop()
-						soundInstance.SoundId = "http://www.roblox.com/asset/?id=" .. toPlay.ID;
+						soundInstance.SoundId = `http://www.roblox.com/asset/?id={toPlay.ID}`;
 						soundInstance:Play()
 						local success, product_info = pcall(function()
 							return service.MarketplaceService:GetProductInfo(toPlay.ID, Enum.InfoType.Asset)
 						end)
-						heading.Text = success and product_info.Name or "[ERROR] "..toPlay.Name
+						heading.Text = success and product_info.Name or `[ERROR] {toPlay.Name}`
 						selected = {
 							ID = toPlay.ID,
 							Name = toPlay.Name,
@@ -10855,7 +11015,7 @@ end
 function module.new(Frame, BarCount)
 
 	-- Determine settings
-	local BAR_COUNT = math.clamp(typeof(BarCount) == "number" and BarCount or 41, 11,601)
+	local BAR_COUNT = math.clamp(type(BarCount) == "number" and BarCount or 41, 11,601)
 	local SAMPLE_HZ = math.clamp(BAR_COUNT/2,10,500)
 
 	if BAR_COUNT%2==0 then
@@ -11344,11 +11504,11 @@ return function(data, env)
 			v.Text = (data.Sanitize and service.SanitizeString(v.Text)) or v.Text
 
 			if v.Duplicates then
-				v.Text = "(x"..v.Duplicates..") "..v.Text
+				v.Text = `(x{v.Duplicates}) {v.Text}`
 			end
 
 			if v.Time then
-				v.Text = "["..(typeof(v.Time) == "number" and service.FormatTime(v.Time) or v.Time).."] "..v.Text
+				v.Text = `[{type(v.Time) == "number" and service.FormatTime(v.Time) or v.Time}] {v.Text}`
 			end
 		end
 
@@ -11391,9 +11551,9 @@ return function(data, env)
 				--pageCounterLabel.TextTruncate = Enum.TextTruncate.None
 				if currentListTab then
 					local maxPages = math.ceil(#currentListTab/PageSize);
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages;
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`;
 				else
-					pageCounterLabel.Text = "Page: ".. PageCounter;
+					pageCounterLabel.Text = `Page: {PageCounter}`;
 				end
 
 				if PageCounter > 1 then
@@ -11481,7 +11641,7 @@ return function(data, env)
 					local maxPages = math.ceil(#currentListTab/PageSize);
 					PageCounter = math.clamp(PageCounter+1, 1, maxPages);
 
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages;
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`;
 
 					if PageCounter > 1 then
 						lastPageButton.Visible = true;
@@ -11532,7 +11692,7 @@ return function(data, env)
 					local maxPages = math.ceil(#currentListTab/PageSize);
 					PageCounter = math.clamp(PageCounter-1, 1, maxPages);
 
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages;
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`;
 
 					if PageCounter == 1 then
 						lastPageButton.Visible = false;
@@ -11694,24 +11854,24 @@ return function(data, env)
 					if friendName == friendInfo[friendName].displayName then
 						entryText = friendName
 					else
-						entryText = friendInfo[friendName].displayName.." (@"..friendName..")"
+						entryText = `{friendInfo[friendName].displayName} (@{friendName})`
 					end
 					local entry = scroller:Add("TextLabel", {
-						Text = "             "..entryText;
-						ToolTip = "Location: "..friendInfo[friendName].lastLocation;
+						Text = `             {entryText}`;
+						ToolTip = `Location: {friendInfo[friendName].lastLocation}`;
 						BackgroundTransparency = (i%2 == 0 and 0) or 0.2;
 						Size = UDim2.new(1, -10, 0, 30);
 						Position = UDim2.new(0, 5, 0, (30*(i-1)));
 						TextXAlignment = "Left";
 					})
 					entry:Add("TextLabel", {
-						Text = " "..locationTypeToStr(friendInfo[friendName].locationType).."  ";
+						Text = ` {locationTypeToStr(friendInfo[friendName].locationType)}  `;
 						BackgroundTransparency = 1;
 						Size = UDim2.new(0, 120, 1, 0);
 						Position = UDim2.new(1, -120, 0, 0);
 						TextXAlignment = "Right";
 					})
-					spawn(function()
+					task.spawn(function()
 						entry:Add("ImageLabel", {
 							Image = game:GetService("Players"):GetUserThumbnailAsync(friendInfo[friendName].id, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420);
 							BackgroundTransparency = 1;
@@ -11723,7 +11883,7 @@ return function(data, env)
 				end
 			end
 			scroller:ResizeCanvas(false, true, false, false, 5, 5)
-			window:SetTitle("Online Friends ("..friendCount..")")
+			window:SetTitle(`Online Friends ({friendCount})`)
 		end
 
 		search.FocusLost:Connect(generate)

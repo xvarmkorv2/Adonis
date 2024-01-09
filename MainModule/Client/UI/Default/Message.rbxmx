@@ -95,7 +95,12 @@
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">2</token>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+						<Weight>700</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/arialbd.ttf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -172,7 +177,12 @@
 					<int name="BorderSizePixel">0</int>
 					<bool name="ClipsDescendants">false</bool>
 					<bool name="Draggable">false</bool>
-					<token name="Font">1</token>
+					<Font name="FontFace">
+						<Family><url>rbxasset://fonts/families/Arial.json</url></Family>
+						<Weight>400</Weight>
+						<Style>Normal</Style>
+						<CachedFaceId><url>rbxasset://fonts/arial.ttf</url></CachedFaceId>
+					</Font>
 					<int name="LayoutOrder">0</int>
 					<float name="LineHeight">1</float>
 					<int name="MaxVisibleGraphemes">-1</int>
@@ -237,9 +247,8 @@
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<Content name="LinkedSource"><null></null></Content>
 					<string name="Name">Code</string>
-					<string name="ScriptGuid"></string>
+					<string name="ScriptGuid">{E318B6EF-F5D9-405E-90C1-C64145CD174B}</string>
 					<ProtectedString name="Source"><![CDATA[client = nil
-cPcall = nil
 Pcall = nil
 Routine = nil
 service = nil
@@ -373,7 +382,7 @@ return function(data, env)
 		Routine(function()
 			wait(0.5)
 			for i = 1, #message do 
-				msg.Text = msg.Text .. message:sub(i,i) 
+				msg.Text = `{msg.Text}{message:sub(i,i)}` 
 				wait(0.05) 
 			end 
 		end)
@@ -399,7 +408,7 @@ return function(data, env)
 	else
 		wait(0.5)
 		for i = 1, #message do 
-			msg.Text = msg.Text .. message:sub(i,i) 
+			msg.Text = `{msg.Text}{message:sub(i,i)}`
 			wait(0.05) 
 		end 
 		wait(tim or 5) 

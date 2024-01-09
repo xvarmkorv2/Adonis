@@ -10,7 +10,6 @@ return function(Vargs, env)
 
 	local Routine = env.Routine
 	local Pcall = env.Pcall
-	local cPcall = env.cPcall
 
 	return {
 		ViewCommands = {
@@ -40,7 +39,7 @@ return function(Vargs, env)
 				for alias, command in Core.GetPlayer(plr).Aliases or {} do
 					table.insert(tab, {
 						Text = alias,
-						Desc = "[User Alias] "..command,
+						Desc = `[User Alias] {command}`,
 						Filter = command
 					})
 					cmdCount += 1
@@ -49,12 +48,12 @@ return function(Vargs, env)
 				table.sort(tab, function(a, b) return a.Text < b.Text end)
 
 				Remote.MakeGui(plr, "List", {
-					Title = "Commands ("..cmdCount..")";
+					Title = `Commands ({cmdCount})`;
 					Table = tab;
 					TitleButtons = {
 						{
 							Text = "?";
-							OnClick = Core.Bytecode("client.Remote.Send('ProcessCommand','"..Settings.PlayerPrefix.."usage')")
+							OnClick = Core.Bytecode(`client.Remote.Send('ProcessCommand','{Settings.PlayerPrefix}usage')`)
 						}
 					};
 				})
@@ -80,7 +79,7 @@ return function(Vargs, env)
 					end
 					if ind then break end
 				end
-				assert(cmd, "Command '"..args[1].."' is either not found or beyond your permission level")
+				assert(cmd, `Command '{args[1]}' is either not found or beyond your permission level`)
 
 				local SanitizeXML = service.SanitizeXML
 
@@ -97,13 +96,13 @@ return function(Vargs, env)
 					Title = "Command Info";
 					Icon = server.MatIcons.Info;
 					Table = {
-						{Text = "<b>Prefix:</b> "..cmd.Prefix, Desc = "Prefix used to run the command"},
-						{Text = "<b>Commands:</b> "..SanitizeXML(table.concat(cmd.Commands, ", ")), Desc = "Valid default aliases for the command"},
-						{Text = "<b>Arguments:</b> "..(if cmdArgs == "" then "-" else SanitizeXML(cmdArgs)), Desc = "Parameters taken by the command"},
-						{Text = "<b>Admin Level:</b> "..Admin.FormatCommandAdminLevel(cmd), Desc = "Rank required to run the command"},
-						{Text = "<b>Description:</b> "..SanitizeXML(cmd.Description), Desc = "Command description"},
-						{Text = "<b>Attributes:</b> "..(if #cmdAttribs == 0 then "-" else table.concat(cmdAttribs, "; ")), Desc = "Extra data about the command"},
-						{Text = "<b>Index:</b> "..SanitizeXML(tostring(ind)), Desc = "The internal command index/identifier"},
+						{Text = `<b>Prefix:</b> {cmd.Prefix}`, Desc = "Prefix used to run the command"},
+						{Text = `<b>Commands:</b> {SanitizeXML(table.concat(cmd.Commands, ", "))}`, Desc = "Valid default aliases for the command"},
+						{Text = `<b>Arguments:</b> {if cmdArgs == "" then "-" else SanitizeXML(cmdArgs)}`, Desc = "Parameters taken by the command"},
+						{Text = `<b>Admin Level:</b> {Admin.FormatCommandAdminLevel(cmd)}`, Desc = "Rank required to run the command"},
+						{Text = `<b>Description:</b> {SanitizeXML(cmd.Description)}`, Desc = "Command description"},
+						{Text = `<b>Attributes:</b> {if #cmdAttribs == 0 then "-" else table.concat(cmdAttribs, "; ")}`, Desc = "Extra data about the command"},
+						{Text = `<b>Index:</b> {SanitizeXML(tostring(ind))}`, Desc = "The internal command index/identifier"},
 					};
 					RichText = true;
 					Size = {400, 225};
@@ -140,7 +139,7 @@ return function(Vargs, env)
 			Description = "Shows you the command prefix using the :cmds command";
 			AdminLevel = "Players";
 			Function = function(plr: Player, args: {string})
-				Functions.Hint('"'..Settings.Prefix..'cmds"', {plr})
+				Functions.Hint(`"{Settings.Prefix}cmds"`, {plr})
 			end
 		};
 
@@ -152,14 +151,7 @@ return function(Vargs, env)
 			Description = "Sends yourself a notification";
 			AdminLevel = "Players";
 			Function = function(plr: Player, args: {string})
-				assert(args[1], "Missing time amount")
-				assert(args[2], "Missing message")
-				Remote.MakeGui(plr, "Notification", {
-					Title = "Notification";
-					Icon = server.MatIcons["Notifications"];
-					Message = args[2];
-					Time = tonumber(args[1]);
-				})
+				Functions.Notification("Notification", assert(args[2], "Missing message"), {plr}, tonumber(assert(args[1], "Missing time amount")), "MatIcon://Notifications")
 			end
 		};
 
@@ -220,7 +212,7 @@ return function(Vargs, env)
 						Position = UDim2.new(0, 5, 0, 30*(i-1));
 						BackgroundTransparency = 1;
 						TextXAlignment = "Left";
-						Text = "  "..bc.Name;
+						Text = `  {bc.Name}`;
 						ToolTip = string.format("RGB: %d, %d, %d | Num: %d", bc.r*255, bc.g*255, bc.b*255, bc.Number);
 						ZIndex = 11;
 						Children = {
@@ -260,7 +252,7 @@ return function(Vargs, env)
 					--Beta Features Materials
 				}
 				for i, mat in mats do
-					mats[i] = {Text = mat; Desc = "Enum value: "..Enum.Material[mat].Value}
+					mats[i] = {Text = mat; Desc = `Enum value: {Enum.Material[mat].Value}`}
 				end
 				Remote.MakeGui(plr, "List", {Title = "Materials"; Tab = mats;})
 			end
@@ -317,7 +309,7 @@ return function(Vargs, env)
 			Description = "Shows you the FPS (speed) of the server";
 			AdminLevel = "Players";
 			Function = function(plr: Player, args: {string})
-				Functions.Hint("The server FPS is "..service.Round(service.Workspace:GetRealPhysicsFPS()), {plr})
+				Functions.Hint(`The server FPS is {math.round(service.Workspace:GetRealPhysicsFPS())}`, {plr})
 			end
 		};
 
@@ -368,7 +360,7 @@ return function(Vargs, env)
 					elseif pending and pending.Pending then
 						error("You already have a pending request")
 					else
-						service.TrackTask("Thread: ".. tostring(plr).. " Help Request Handler", function()
+						service.TrackTask(`Thread: {plr} Help Request Handler`, function()
 							Functions.Hint("Request sent", {plr})
 
 							pending = {
@@ -384,7 +376,7 @@ return function(Vargs, env)
 									if Admin.CheckAdmin(p) then
 										local ret = Remote.MakeGuiGet(p, "Notification", {
 											Title = "Help Request";
-											Message = plr.Name.." needs help! Reason: "..pending.Reason;
+											Message = `{plr.Name} needs help! Reason: {pending.Reason}`;
 											Icon = server.MatIcons.Mail;
 											Time = 30;
 											OnClick = Core.Bytecode("return true");
@@ -396,14 +388,9 @@ return function(Vargs, env)
 										if ret then
 											if not answered then
 												answered = true
-												Admin.RunCommand(Settings.Prefix.."tp", p.Name, plr.Name)
+												Commands.Teleport.Function(plr, {p.Name, `@{plr.Name}`})
 											else
-												Remote.MakeGui(p, "Notification", {
-													Title = "Help Request";
-													Message = "Another admin has already responded to this request!";
-													Icon = server.MatIcons.Mail;
-													Time = 5;
-												})
+												Functions.Notification("Help Request", "Another admin has already responded to this request!", {plr}, 5, "MatIcon://Mail")
 											end
 										end
 									end
@@ -416,12 +403,12 @@ return function(Vargs, env)
 							pending.Pending = false;
 
 							if not answered then
-								Functions.Message("Help System", "Sorry but no one is available to help you right now", {plr})
+								Functions.Message('HelpSystem', "Help System", "Sorry but no one is available to help you right now", 'MatIcon://Warning', {plr})
 							end
 						end)
 					end
 				else
-					Functions.Message("Help System", "The help system has been disabled by the place owner.", {plr})
+					Functions.Message('HelpSystem', "Help System", "The help system has been disabled by the place owner.", 'MatIcon://Error', {plr})
 				end
 			end
 		};
@@ -461,13 +448,13 @@ return function(Vargs, env)
 							}))
 							Functions.Hint("Teleporting...", {plr})
 						else
-							Functions.Hint(service.Players:GetNameFromUserIdAsync(UserId).." was not found playing this game", {plr})
+							Functions.Hint(`{service.Players:GetNameFromUserIdAsync(UserId)} was not found playing this game`, {plr})
 						end
 					else
-						Functions.Hint("Unexpected internal error: "..found, {plr})
+						Functions.Hint(`Unexpected internal error: {found}`, {plr})
 					end
 				else
-					Functions.Hint("'"..args[1].."' is not a valid Roblox user", {plr})
+					Functions.Hint(`'{args[1]}' is not a valid Roblox user`, {plr})
 				end
 			end
 		};
@@ -493,7 +480,7 @@ return function(Vargs, env)
 								service.TeleportService:TeleportAsync(v.PlaceId, {plr})
 								Functions.Hint(string.format("Joining %s (%s)...", v.UserName, v.LastLocation or "unknown game"), {plr})
 							else
-								Functions.Hint(v.UserName.." is not currently playing a game", {plr})
+								Functions.Hint(`{v.UserName} is not currently playing a game`, {plr})
 							end
 
 							return
@@ -502,7 +489,7 @@ return function(Vargs, env)
 
 					Functions.Hint("You are not a friend of the specified user", {plr})
 				else
-					Functions.Hint("'"..args[1].."' is not a valid Roblox user", {plr})
+					Functions.Hint(`'{args[1]}' is not a valid Roblox user`, {plr})
 				end
 			end
 		};
@@ -542,7 +529,7 @@ return function(Vargs, env)
 			AdminLevel = "Players";
 			Function = function(plr: Player, args: {string})
 				local quotes = require(Deps.Assets.Quotes)
-				Functions.Message("Random Quote", quotes[math.random(1, #quotes)], {plr})
+				Functions.Message('Command', "Random Quote", quotes[math.random(1, #quotes)], 'MatIcon://Chat', {plr})
 			end
 		};
 
@@ -558,41 +545,41 @@ return function(Vargs, env)
 					"Mouse over things in lists to expand them";
 					"You can also resize windows by dragging the edges";
 					"";
-					"Put <i>/e</i> in front to silence commands in chat (<i>/e "..Settings.Prefix.."kill scel</i>) or enable chat command hiding in client settings";
-					"Player commands can be used by anyone, these commands have <i>"..Settings.PlayerPrefix.."</i> infront, such as <i>"..Settings.PlayerPrefix.."info</i> and <i>"..Settings.PlayerPrefix.."rejoin</i>";
+					`Put <i>/e</i> in front to silence commands in chat (<i>/e {Settings.Prefix}kill scel</i>) or enable chat command hiding in client settings`;
+					`Player commands can be used by anyone, these commands have <i>{Settings.PlayerPrefix}</i> infront, such as <i>{Settings.PlayerPrefix}info</i> and <i>{Settings.PlayerPrefix}rejoin</i>`;
 					"";
 					"<b>――――― Player Selectors ―――――</b>";
-					"Usage example: <i>"..Settings.Prefix.."kill "..Settings.SpecialPrefix.."all</i> (where <i>"..Settings.SpecialPrefix.."all</i> is the selector)";
-					"<i>"..Settings.SpecialPrefix.."me</i> - Yourself";
-					"<i>"..Settings.SpecialPrefix.."all</i> - Everyone in the server";
-					"<i>"..Settings.SpecialPrefix.."admins</i> - All admins in the server";
-					"<i>"..Settings.SpecialPrefix.."nonadmins</i> - Non-admins (normal players) in the server";
-					"<i>"..Settings.SpecialPrefix.."others</i> - Everyone except yourself";
-					"<i>"..Settings.SpecialPrefix.."random</i> - A random person in the server excluding those removed with -SELECTION";
-					"<i>@USERNAME</i> - Targets a specific player with that exact username Ex: <i>"..Settings.Prefix.."god @Sceleratis </i> would give a player with the username 'Sceleratis' god powers";
-					"<i>#NUM</i> - NUM random players in the server <i>"..Settings.Prefix.."ff #5</i> will ff 5 random players excluding those removed with -SELECTION.";
-					"<i>"..Settings.SpecialPrefix.."friends</i> - Your friends who are in the server";
-					"<i>%TEAMNAME</i> - Members of the team TEAMNAME Ex: "..Settings.Prefix.."kill %raiders";
-					"<i>$GROUPID</i> - Members of the group with ID GROUPID (number in the Roblox group webpage URL)";
-					"<i>-SELECTION</i> - Inverts the selection, ie. will remove SELECTION from list of players to run command on. "..Settings.Prefix.."kill all,-%TEAM will kill everyone except players on TEAM";
-					"<i>+SELECTION</i> - Readds the selection, ie. will readd SELECTION from list of players to run command on. "..Settings.Prefix.."kill all,-%TEAM,+Lethalitics will kill everyone except players on TEAM but also Lethalitics";
-					"<i>radius-NUM</i> -- Anyone within a NUM-stud radius of you. "..Settings.Prefix.."ff radius-5 will ff anyone within a 5-stud radius of you.";
+					`Usage example: <i>{Settings.Prefix}kill {Settings.SpecialPrefix}all</i> (where <i>{Settings.SpecialPrefix}all</i> is the selector)`;
+					`<i>{Settings.SpecialPrefix}me</i> - Yourself`;
+					`<i>{Settings.SpecialPrefix}all</i> - Everyone in the server`;
+					`<i>{Settings.SpecialPrefix}admins</i> - All admins in the server`;
+					`<i>{Settings.SpecialPrefix}nonadmins</i> - Non-admins (normal players) in the server`;
+					`<i>{Settings.SpecialPrefix}others</i> - Everyone except yourself`;
+					`<i>{Settings.SpecialPrefix}random</i> - A random person in the server excluding those removed with -SELECTION`;
+					`<i>@USERNAME</i> - Targets a specific player with that exact username Ex: <i>{Settings.Prefix}god @Sceleratis </i> would give a player with the username 'Sceleratis' god powers`;
+					`<i>#NUM</i> - NUM random players in the server <i>{Settings.Prefix}ff #5</i> will ff 5 random players excluding those removed with -SELECTION.`;
+					`<i>{Settings.SpecialPrefix}friends</i> - Your friends who are in the server`;
+					`<i>%TEAMNAME</i> - Members of the team TEAMNAME Ex: {Settings.Prefix}kill %raiders`;
+					`<i>$GROUPID</i> - Members of the group with ID GROUPID (number in the Roblox group webpage URL)`;
+					`<i>-SELECTION</i> - Inverts the selection, ie. will remove SELECTION from list of players to run command on. {Settings.Prefix}kill all,-%TEAM will kill everyone except players on TEAM`;
+					`<i>+SELECTION</i> - Readds the selection, ie. will readd SELECTION from list of players to run command on. {Settings.Prefix}kill all,-%TEAM,+Lethalitics will kill everyone except players on TEAM but also Lethalitics`;
+					`<i>radius-NUM</i> -- Anyone within a NUM-stud radius of you. {Settings.Prefix}ff radius-5 will ff anyone within a 5-stud radius of you.`;
 					"";
 					"<b>――――― Repetition ―――――</b>";
-					"Multiple player selections - <i>"..Settings.Prefix.."kill me,noob1,noob2,"..Settings.SpecialPrefix.."random,%raiders,$123456,"..Settings.SpecialPrefix.."nonadmins,-scel</i>";
-					"Multiple Commands at a time - <i>"..Settings.Prefix.."ff me "..Settings.BatchKey.." "..Settings.Prefix.."sparkles me "..Settings.BatchKey.." "..Settings.Prefix.."rocket jim</i>";
-					"You can add a delay if you want; <i>"..Settings.Prefix.."ff me "..Settings.BatchKey.." !wait 10 "..Settings.BatchKey.." "..Settings.Prefix.."m hi we waited 10 seconds</i>";
-					"<i>"..Settings.Prefix.."repeat 10(how many times to run the cmd) 1(how long in between runs) "..Settings.Prefix.."respawn jim</i>";
+					"Multiple player selections - <i>{Settings.Prefix}kill me,noob1,noob2,{Settings.SpecialPrefix}random,%raiders,$123456,{Settings.SpecialPrefix}nonadmins,-scel</i>";
+					"Multiple Commands at a time - <i>{Settings.Prefix}ff me {Settings.BatchKey} {Settings.Prefix}sparkles me {Settings.BatchKey} {Settings.Prefix}rocket jim</i>";
+					"You can add a delay if you want; <i>{Settings.Prefix}ff me {Settings.BatchKey} !wait 10 {Settings.BatchKey} {Settings.Prefix}m hi we waited 10 seconds</i>";
+					`<i>{Settings.Prefix}repeat 10(how many times to run the cmd) 1(how long in between runs) {Settings.Prefix}respawn jim</i>`;
 					"";
 					"<b>――――― Reference Info ―――――</b>";
-					"<i>"..Settings.Prefix.."cmds</i> for a list of available commands";
-					"<i>"..Settings.Prefix.."cmdinfo &lt;command&gt;</i> for detailed info about a specific command";
-					"<i>"..Settings.PlayerPrefix.."brickcolors</i> for a list of BrickColors";
-					"<i>"..Settings.PlayerPrefix.."materials</i> for a list of materials";
+					`<i>{Settings.Prefix}cmds</i> for a list of available commands`;
+					`<i>{Settings.Prefix}cmdinfo &lt;command&gt;</i> for detailed info about a specific command`;
+					`<i>{Settings.PlayerPrefix}brickcolors</i> for a list of BrickColors`;
+					`<i>{Settings.PlayerPrefix}materials</i> for a list of materials`;
 					"";
-					"<i>"..Settings.Prefix.."capes</i> for a list of preset admin capes";
-					"<i>"..Settings.Prefix.."musiclist</i> for a list of preset audios";
-					"<i>"..Settings.Prefix.."insertlist</i> for a list of insertable assets using "..Settings.Prefix.."insert";
+					`<i>{Settings.Prefix}capes</i> for a list of preset admin capes`;
+					`<i>{Settings.Prefix}musiclist</i> for a list of preset audios`;
+					`<i>{Settings.Prefix}insertlist</i> for a list of insertable assets using {Settings.Prefix}insert`;
 				}
 				Remote.MakeGui(plr, "List", {
 					Title = "Usage";
@@ -628,13 +615,8 @@ return function(Vargs, env)
 				data.CustomTheme = args[1]
 				playerData.Client = data
 				Core.SavePlayer(plr, playerData)
-				Remote.MakeGui(plr, "Notification", {
-					Title = "Theme Changed";
-					Icon = server.MatIcons.Palette;
-					Message = if args[1] then "UI theme set to '"..args[1].."'!" else "UI theme reset to default.";
-					Time = 5;
-				})
-				Remote.LoadCode(plr, "client.Variables.CustomTheme = "..if args[1] then "[["..args[1].."]]" else "nil")
+				Functions.Notification("Theme Changed", if args[1] then `UI theme set to '{args[1]}'!` else "UI theme reset to default.", {plr}, 5, "MatIcon://Palette")
+				Remote.LoadCode(plr, `client.Variables.CustomTheme = {if args[1] then `[[{args[1]}]]` else "nil"}`)
 			end
 		};
 
@@ -725,7 +707,7 @@ return function(Vargs, env)
 			Function = function(plr: Player, args: {string})
 				for _, v: Player in service.GetPlayers(plr, args[1]) do
 					assert(v ~= plr, "Cannot friend yourself!")
-					assert(not plr:IsFriendsWith(v.UserId), "You are already friends with "..v.Name)
+					assert(not plr:IsFriendsWith(v.UserId), `You are already friends with {v.Name}`)
 					Remote.Send(plr, "Function", "SetCore", "PromptSendFriendRequest", v)
 				end
 			end
@@ -741,7 +723,7 @@ return function(Vargs, env)
 			Function = function(plr: Player, args: {string})
 				for i, v: Player in service.GetPlayers(plr, args[1]) do
 					assert(v ~= plr, "Cannot unfriend yourself!")
-					assert(plr:IsFriendsWith(v.UserId), "You are not currently friends with "..v.Name)
+					assert(plr:IsFriendsWith(v.UserId), `You are not currently friends with {v.Name}`)
 					Remote.Send(plr, "Function", "SetCore", "PromptUnfriend", v)
 				end
 			end
@@ -755,7 +737,7 @@ return function(Vargs, env)
 			AdminLevel = "Players";
 			Function = function(plr: Player, args: {string})
 				for _, v: Player in service.GetPlayers(plr, args[1]) do
-					Remote.LoadCode(plr, "service.GuiService:InspectPlayerFromUserId("..v.UserId..")")
+					Remote.LoadCode(plr, `service.GuiService:InspectPlayerFromUserId({v.UserId})`)
 				end
 			end
 		};
@@ -788,9 +770,9 @@ return function(Vargs, env)
 				end
 
 				if nilNum > 0 and Admin.GetLevel(plr) >= Settings.Ranks.Moderators.Level then
-					Functions.Hint("There are currently "..tostring(num).." player(s); "..tostring(nilNum).." are nil or loading", {plr})
+					Functions.Hint(`There are currently {num} player(s); {nilNum} are nil or loading`, {plr})
 				else
-					Functions.Hint("There are "..tostring(num).." player(s)", {plr})
+					Functions.Hint(`There are {num} player(s)`, {plr})
 				end
 			end
 		};
@@ -823,7 +805,7 @@ return function(Vargs, env)
 				}
 				for i, v in tab do
 					if not v[2] then continue end
-					tab[i] = {Text = "<b>"..v[1]..":</b> "..v[2]; Desc = v[2];}
+					tab[i] = {Text = `<b>{v[1]}:</b> {v[2]}`; Desc = v[2];}
 				end
 				return tab
 			end;
@@ -855,6 +837,17 @@ return function(Vargs, env)
 			end
 		};
 
+		PersonalStopwatch = {
+			Prefix = Settings.PlayerPrefix;
+			Commands = {"stopwatch"};
+			Args = {};
+			Description = "Makes a stopwatch on your screen";
+			AdminLevel = "Players";
+			Function = function(plr: Player, args: {string})
+				Remote.MakeGui(plr, "Stopwatch")
+			end
+		};
+
 		ViewProfile = {
 			Prefix = Settings.PlayerPrefix;
 			Commands = {"profile", "inspect", "playerinfo", "whois", "viewprofile"};
@@ -876,8 +869,8 @@ return function(Vargs, env)
 						if elevated then
 							local level, rank = Admin.GetLevel(v)
 							gameData = {
-								IsMuted = table.find(Settings.Muted, v.Name..":"..v.UserId) and true or false;
-								AdminLevel = "[".. level .."] ".. (rank or "Unknown");
+								IsMuted = table.find(Settings.Muted, `{v.Name}:{v.UserId}`) and true or false;
+								AdminLevel = `[{level}] {rank or "Unknown"}`;
 								SourcePlaceId = v:GetJoinData().SourcePlaceId or "N/A";
 							}
 							for k, d in Remote.Get(v, "Function", "GetUserInputServiceData") do
@@ -889,12 +882,24 @@ return function(Vargs, env)
 						local hasSafeChat = if policyInfo then
 							type(policyInfo) == "string" and policyInfo or table.find(policyInfo.AllowedExternalLinkReferences, "Discord") and "No" or "Yes"
 							else "[Redacted]"
+						
+						local mailVerif = select(2, xpcall(service.MarketplaceService.PlayerOwnsAsset, function() return "[Error]" end, service.MarketplaceService, v, 102611803))
+						local hasVerifiedMail = if elevated then
+							type(mailVerif) == "string" and mailVerif or mailVerif and "Yes" or "No"
+							else "[Redacted]"
+						
+						local idVerif = select(2, xpcall(v.IsVerified, function() return "[Error]" end, v))
+						local hasVerifiedId = if elevated then
+							type(idVerif) == "string" and idVerif or idVerif and "Yes" or "No"
+							else "[Redacted]"
 
-						Remote.RemoveGui(plr, "Profile_"..v.UserId)
+						Remote.RemoveGui(plr, `Profile_{v.UserId}`)
 						Remote.MakeGui(plr, "Profile", {
 							Target = v;
 							SafeChat = hasSafeChat;
 							CanChatGet = table.pack(pcall(service.Chat.CanUserChatAsync, service.Chat, v.UserId));
+							MailVerified = hasVerifiedMail;
+							IDVerified = hasVerifiedId;
 							IsDonor = Admin.CheckDonor(v);
 							GameData = gameData;
 							IsServerOwner = v.UserId == game.PrivateServerOwnerId;
@@ -990,8 +995,8 @@ return function(Vargs, env)
 				local groupId = assert(args[1] and tonumber(args[1]), "Missing/invalid group ID")
 				local groupInfo = assert(select(2, xpcall(service.GroupService.GetGroupInfoAsync, function() return nil end, service.GroupService, groupId)), "Error fetching data")
 				local tab = {
-					"Name: "..groupInfo.Name,
-					"ID: "..groupInfo.Id,
+					`Name: {groupInfo.Name}`,
+					`ID: {groupInfo.Id}`,
 					if groupInfo.Owner then string.format("Owner: %s [%d]", groupInfo.Owner.Name or "???", groupInfo.Owner.Id) else "[No Owner]",
 					{Text = string.format("――― Roles (%d): ―――――――――――――――――", #groupInfo.Roles)},
 				}
@@ -1025,7 +1030,7 @@ return function(Vargs, env)
 						table.sort(names)
 						for _, name in names do
 							local grp = refs[name]
-							table.insert(tab, {Text = string.format("[#%d] %s", grp.Id, name), Desc = "Owner: "..if grp.Owner then string.format("%s [%d]", grp.Owner.Name or "???", grp.Owner.Id) else "[No Owner]"})
+							table.insert(tab, {Text = string.format("[#%d] %s", grp.Id, name), Desc = `Owner: {if grp.Owner then string.format("%s [%d]", grp.Owner.Name or "???", grp.Owner.Id) else "[No Owner]"}`})
 						end
 					else
 						table.insert(tab, {Text = "This group doesn't have any allies."})
@@ -1042,7 +1047,7 @@ return function(Vargs, env)
 						table.sort(names)
 						for _, name in names do
 							local grp = refs[name]
-							table.insert(tab, {Text = string.format("[#%d] %s", grp.Id, name), Desc = "Owner: "..if grp.Owner then string.format("%s [%d]", grp.Owner.Name or "???", grp.Owner.Id) else "[No Owner]"})
+							table.insert(tab, {Text = string.format("[#%d] %s", grp.Id, name), Desc = `Owner: {if grp.Owner then string.format("%s [%d]", grp.Owner.Name or "???", grp.Owner.Id) else "[No Owner]"}`})
 						end
 					else
 						table.insert(tab, {Text = "This group doesn't have any enemies."})
@@ -1109,8 +1114,8 @@ return function(Vargs, env)
 			Hidden = true;
 			Function = function(plr: Player, args: {string})
 				local list = {}
-				for code, name in require(server.Shared.CountryRegionCodes) do
-					table.insert(list, code.." - "..name)
+				for code, name in require(server.Dependencies.CountryRegionCodes) do
+					table.insert(list, `{code} - {name}`)
 				end
 				table.sort(list)
 				Remote.MakeGui(plr, "List", {
@@ -1121,5 +1126,26 @@ return function(Vargs, env)
 			end
 		};
 
+		BuyItem = {
+			Prefix = Settings.PlayerPrefix;
+			Commands = {"buyitem", "buyasset"};
+			Args = {"id"};
+			Description = "Prompts yourself to buy the asset belonging to the ID supplied";
+			AdminLevel = "Players";
+			Function = function(plr: Player, args: {string})
+				local assetId = assert(tonumber(args[1]), "Missing asset ID (argument #1)")
+				local success, assetAlreadyOwned = pcall(service.MarketplaceService.PlayerOwnsAsset, service.MarketplaceService, plr, assetId)
+				assert(not (success and assetAlreadyOwned), "You already own the asset!")
+				local success, assetInfo = pcall(service.MarketplaceService.GetProductInfo, service.MarketplaceService, assetId)
+				assert(success and not assetInfo.IsLimited, "Cannot buy limited assets!")
+				local connection; connection = service.MarketplaceService.PromptPurchaseFinished:Connect(function(_, boughtAssetId, isPurchased)
+					if boughtAssetId == assetId then
+						connection:Disconnect()
+						Functions.Notification("Adonis purchase", (isPurchased and string.format("Asset %d was purchased successfully!", assetId) or string.format("Asset %d was not bought", assetId)), {plr}, 10, "MatIcon://Shopping cart")
+					end
+				end)
+				service.MarketplaceService:PromptPurchase(plr, assetId, false)
+			end
+		};
 	};
 end

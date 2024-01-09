@@ -1,6 +1,5 @@
 server = nil
 service = nil
-cPcall = nil
 Pcall = nil
 Routine = nil
 GetEnv = nil
@@ -90,7 +89,7 @@ return function(Vargs, GetEnv)
 			if cmd.Chattable ~= nil then
 				cmd.NonChattable = not cmd.Chattable
 				cmd.Chattable = nil
-				warn("Deprecated 'Chattable' property found in command "..ind.."; switched to NonChattable = "..tostring(cmd.NonChattable))
+				warn(`Deprecated 'Chattable' property found in command {ind}; switched to NonChattable = {cmd.NonChattable}`)
 			end
 
 			Admin.PrefixCache[cmd.Prefix] = true
@@ -118,14 +117,19 @@ return function(Vargs, GetEnv)
 						if type(cmd.ListUpdater) == "function" then
 							return cmd.ListUpdater(plr, ...)
 						end
-						return Logs[cmd.ListUpdater]
+						--// will change how this works later
+						local LogTable = Logs[cmd.ListUpdater]
+						if LogTable and LogTable.__meta == "DLL" then
+							return LogTable:GetAsTable()
+						end
+						return LogTable
 					end
 				end
 			end
 
 			local isValid, fault = ValidateCommandDefinition(cmd)
 			if not isValid then
-				logError("Invalid command definition table "..ind..":", fault)
+				logError(`Invalid command definition table {ind}:`, fault)
 				Commands[ind] = nil
 			end
 
@@ -171,11 +175,11 @@ return function(Vargs, GetEnv)
 						Commands[ind] = cmd
 					end
 
-					Logs.AddLog("Script", "Loaded Command Module: ".. module.Name)
+					Logs.AddLog("Script", `Loaded Command Module: {module.Name}`)
 				elseif not ran then
-					warn("CMDMODULE ".. module.Name .. " failed to load:")
+					warn(`CMDMODULE {module.Name} failed to load:`)
 					warn(tostring(tab))
-					Logs.AddLog("Script", "Loading Command Module Failed: ".. module.Name)
+					Logs.AddLog("Script", `Loading Command Module Failed: {module.Name}`)
 				end
 			end
 		end

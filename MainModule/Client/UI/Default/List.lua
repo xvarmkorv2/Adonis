@@ -102,11 +102,11 @@ return function(data, env)
 			v.Text = (data.Sanitize and service.SanitizeString(v.Text)) or v.Text
 
 			if v.Duplicates then
-				v.Text = "(x"..v.Duplicates..") "..v.Text
+				v.Text = `(x{v.Duplicates}) {v.Text}`
 			end
 
 			if v.Time then
-				v.Text = "["..(typeof(v.Time) == "number" and service.FormatTime(v.Time, TimeOptions) or v.Time).."] "..v.Text
+				v.Text = `[{type(v.Time) == "number" and service.FormatTime(v.Time, TimeOptions) or v.Time}] {v.Text}`
 			end
 		end
 
@@ -137,6 +137,7 @@ return function(data, env)
 			else
 				PageCounter = PageNumber
 				search.Text = ""
+				search.PlaceholderText = "Search (" .. (#Tab == 1 and "1 Item" or #Tab .. " Items") .. ")";
 				gotList = getListTab(Tab)
 			end
 
@@ -148,9 +149,9 @@ return function(data, env)
 				pageCounterLabel.Visible = true
 				if currentListTab then
 					local maxPages = math.ceil(#currentListTab/PageSize)
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`
 				else
-					pageCounterLabel.Text = "Page: ".. PageCounter
+					pageCounterLabel.Text = `Page: {PageCounter}`
 				end
 
 				if PageCounter > 1 then
@@ -237,7 +238,7 @@ return function(data, env)
 					local maxPages = math.ceil(#currentListTab/PageSize);
 					PageCounter = math.clamp(PageCounter+1, 1, maxPages);
 
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`
 
 					if PageCounter > 1 then
 						lastPageButton.Visible = true
@@ -289,7 +290,7 @@ return function(data, env)
 					local maxPages = math.ceil(#currentListTab/PageSize)
 					PageCounter = math.clamp(PageCounter-1, 1, maxPages)
 
-					pageCounterLabel.Text = "Page: ".. PageCounter.."/"..maxPages
+					pageCounterLabel.Text = `Page: {PageCounter}/{maxPages}`
 
 					if PageCounter == 1 then
 						lastPageButton.Visible = false

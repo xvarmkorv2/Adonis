@@ -6,12 +6,14 @@
 		<Properties>
 			<BinaryString name="AttributesSerialize"></BinaryString>
 			<bool name="AutoLocalize">false</bool>
+			<bool name="ClipToDeviceSafeArea">true</bool>
 			<int name="DisplayOrder">9000000</int>
 			<bool name="Enabled">false</bool>
 			<bool name="IgnoreGuiInset">false</bool>
 			<string name="Name">Console</string>
 			<bool name="ResetOnSpawn">false</bool>
 			<Ref name="RootLocalizationTable">null</Ref>
+			<token name="SafeAreaCompatibility">1</token>
 			<token name="SelectionBehaviorDown">0</token>
 			<token name="SelectionBehaviorLeft">0</token>
 			<token name="SelectionBehaviorRight">0</token>
@@ -253,11 +255,11 @@
 					<bool name="TextScaled">false</bool>
 					<float name="TextSize">22</float>
 					<Color3 name="TextStrokeColor3">
-						<R>0</R>
-						<G>0</G>
-						<B>0</B>
+						<R>1</R>
+						<G>1</G>
+						<B>1</B>
 					</Color3>
-					<float name="TextStrokeTransparency">0.5</float>
+					<float name="TextStrokeTransparency">1</float>
 					<float name="TextTransparency">0</float>
 					<token name="TextTruncate">0</token>
 					<bool name="TextWrapped">true</bool>
@@ -530,7 +532,7 @@
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<Content name="LinkedSource"><null></null></Content>
 					<string name="Name">Code</string>
-					<string name="ScriptGuid">{A498B0DF-7292-49E2-B329-C1BFA0FD3078}</string>
+					<string name="ScriptGuid">{B657D7B2-F9BE-4DCF-9B3B-B447F129FD08}</string>
 					<ProtectedString name="Source"><![CDATA[client = nil
 cPcall = nil
 Pcall = nil
@@ -719,7 +721,10 @@ return function(data, env)
 		if text.Text ~= "" and openConsole then
 			if string.sub(text.Text, string.len(text.Text)) == "	" then
 				if players:FindFirstChild("Entry 0") then
-					text.Text = (string.sub(text.Text, 1, (string.len(text.Text) - 1))..players["Entry 0"].Text).." "
+					local args = string.split(tostring(text.Text), " ") -- Get command args
+					local textWithoutLastArg = string.sub(text.Text, 1, string.len(text.Text) - string.len(args[#args])) -- Remove the last arg
+					
+					text.Text = `{textWithoutLastArg}{players["Entry 0"].Text} ` -- Combine the text witout the last arg and the player name
 				elseif scroll:FindFirstChild("Entry 0") then
 					text.Text = string.split(scroll["Entry 0"].Text, "<")[1]
 				else
@@ -732,18 +737,18 @@ return function(data, env)
 			players:ClearAllChildren()
 
 			local nText = text.Text
-			if string.match(nText, ".*"..batchKey.."([^']+)") then
-				nText = string.match(nText, ".*"..batchKey.."([^']+)")
+			if string.match(nText, `.*{batchKey}([^']+)`) then
+				nText = string.match(nText, `.*{batchKey}([^']+)`)
 				nText = string.match(nText, "^%s*(.-)%s*$")
 			end
 
 			local pNum = 0
-			local pMatch = string.match(nText, ".+"..splitKey.."(.*)$")
+			local pMatch = string.match(nText, `.+{splitKey}(.*)$`)
 			for _, v in service.Players:GetPlayers() do
-				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,splitKey.."$") then
+				if (pMatch and string.sub(string.lower(tostring(v)),1,#pMatch) == string.lower(pMatch)) or string.match(nText,`{splitKey}$`) then
 					local new = entry:Clone()
 					new.Text = tostring(v)
-					new.Name = "Entry "..pNum
+					new.Name = `Entry {pNum}`
 					new.TextXAlignment = "Right"
 					new.Visible = true
 					new.Parent = players
@@ -760,7 +765,7 @@ return function(data, env)
 
 			local num = 0
 			for _, v in commands do
-				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText), "^(.-)"..splitKey) or string.lower(nText), 1, true) then
+				if string.sub(string.lower(v),1,#nText) == string.lower(nText) or string.find(string.lower(v), string.match(string.lower(nText), `^(.-){splitKey}`) or string.lower(nText), 1, true) then
 					if not scrollOpen then
 						scrollOpenTween:Play()
 						--frame.Size = UDim2.new(1,0,0,140)
@@ -772,7 +777,7 @@ return function(data, env)
 					b.Visible = true
 					b.Parent = scroll
 					b.Text = v
-					b.Name = "Entry "..num
+					b.Name = `Entry {num}`
 					b.Position = UDim2.fromOffset(0, 20*num)
 					b.MouseButton1Down:Connect(function()
 						text.Text = b.Text

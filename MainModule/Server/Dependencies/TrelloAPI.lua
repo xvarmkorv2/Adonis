@@ -1,18 +1,17 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Trello API Documentation: 	https://trello.com/docs/																									     --
---								https://developers.trello.com/advanced-reference																			     --
+-- Trello API Documentation: 																							     --
 --																																							     --
--- App Key Link: 			 	https://trello.com/app-key																						    			 --
+-- App Key Link: 			 	/app-key																						    			 --
 --																																				  				 --
--- Token Link:   			 	https://trello.com/1/connect?name=Trello_API_Module&response_type=token&expires=never&scope=read,write&key=YOUR_APP_KEY_HERE     --
--- Replace "YOUR_APP_KEY_HERE" with the App Key from https://trello.com/app-key																					 --
+-- Token Link:   			 	/1/connect?name=Trello_API_Module&response_type=token&expires=never&scope=read,write&key=YOUR_APP_KEY_HERE     --
+-- Replace "YOUR_APP_KEY_HERE" with the App Key from /app-key																					 --
 -- Trello API Remade by imskyyc for Kronos and Adonis - original by Sceleratis / Davey_Bones for Adonis.																	 --
 -- It is requested that existing credits remain here.																											 --
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local print = function(...) for i,v in {...} do warn("[Adonis TrelloAPI]: INFO: "..tostring(v)) end end
-local error = function(...) for i,v in {...} do warn("[Adonis TrelloAPI]: ERROR: "..tostring(v)) end end
-local warn = function(...) for i,v in {...} do warn("[Adonis TrelloAPI]: WARN: "..tostring(v)) end end
+local print = function(...) for i,v in {...} do warn(`[Adonis TrelloAPI]: INFO: {v}`) end end
+local error = function(...) for i,v in {...} do warn(`[Adonis TrelloAPI]: ERROR: {v}`) end end
+local warn = function(...) for i,v in {...} do warn(`[Adonis TrelloAPI]: WARN: {v}`) end end
 
 local HttpService = game:GetService("HttpService")
 local Weeks = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
@@ -30,7 +29,7 @@ local RateLimit = function()
 	end
 	Requests += 1
 	task.delay(WaitTime/2, function()
-		if #Queue == 0 then
+		if next(Queue) == nil then
 			Requests = 0
 		end
 	end)
@@ -105,7 +104,7 @@ local HttpFunctions; HttpFunctions = {
 		if ran then
 			return response
 		else
-			warn("RequestAsync failed: "..tostring(response))
+			warn(`RequestAsync failed: {response}`)
 			return false
 		end
 	end;
@@ -123,7 +122,7 @@ local HttpFunctions; HttpFunctions = {
 		if ran then
 			return response
 		else
-			warn("GetAsync failed: "..tostring(response))
+			warn(`GetAsync failed: {response}`)
 			return false
 		end
 	end;
@@ -141,7 +140,7 @@ local HttpFunctions; HttpFunctions = {
 		if ran then
 			return response
 		else
-			warn("PostAsync failed: "..tostring(response))
+			warn(`PostAsync failed: {response}`)
 			return false
 		end
 	end;
@@ -172,17 +171,16 @@ return function(AppKey, Token)
 	AppKey = AppKey or ""
 	Token = Token or ""
 
-	local Base = "https://trello.com/1/"
-	local Arguments = "key="..tostring(AppKey).."&token="..tostring(Token)
+	local Arguments = `key={AppKey}&token={Token}`
 
 	local GetUrl = function(str)
 		local Token = Token
 		if string.find(str, "?") then
-			Token="&"..Arguments
+			Token=`&{Arguments}`
 		else
-			Token="?"..Arguments
+			Token=`?{Arguments}`
 		end
-		return Base..str..Token
+		return `https://trello.com/1/{str}{Token}`
 	end;
 	
 	local CheckHttp = function()
@@ -232,21 +230,21 @@ return function(AppKey, Token)
 			local Minute = string.format("%02s", tostring(TimeTable.min))
 			local Seconds = string.format("%02s", tostring(TimeTable.sec))
 
-			local TimeString = Week.." "..Month.." "..Day.." @ "..Hour..":"..Minute..":"..Seconds.." "..am_pm.." (UTC)"
+			local TimeString = `{Week} {Month} {Day} @ {Hour}:{Minute}:{Seconds} {am_pm} (UTC)`
 			return TimeString
 		end;
 
 		Boards = {
 			GetBoard = function(BoardID)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("boards/"..tostring(BoardID))))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`boards/{BoardID}`)))
 			end;
 
 			GetBoardField = function(BoardID, Field)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("boards/"..tostring(BoardID).."/"..tostring(Field))))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`boards/{BoardID}/{Field}`)))
 			end;
 
 			GetLists = function(BoardID)
-				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl("boards/"..tostring(BoardID).."/lists")))
+				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`boards/{BoardID}/lists`)))
 				if type(Response)=="table" then
 					return Response
 				else
@@ -255,8 +253,8 @@ return function(AppKey, Token)
 			end;
 			
 			GetListsAndCards = function(BoardID, ExcludeLabels)
-				local CardFilter = "id,name,desc" .. (ExcludeLabels and "" or ",labels")
-				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl("boards/"..tostring(BoardID).."/lists?filter=open&fields=id,name,cards&cards=open&card_fields="..CardFilter)))
+				local CardFilter = `id,name,desc{ExcludeLabels and "" or ",labels"}`
+				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`boards/{BoardID}/lists?filter=open&fields=id,name,cards&cards=open&card_fields={CardFilter}`)))
 				if type(Response)=="table" then
 					return Response
 				else
@@ -271,17 +269,17 @@ return function(AppKey, Token)
 
 			MakeList = function(BoardID, Name, Extra)
 				local Extra = Extra or ""
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("boards/"..tostring(BoardID).."/lists"),"&name="..HttpFunctions.UrlEncode(Name)..Extra,2))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`boards/{BoardID}/lists`),`&name={HttpFunctions.UrlEncode(Name)}{Extra}`,2))
 			end;
 		};
 
 		Lists = {
 			GetListField = function(ListID, Field)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("lists/"..tostring(ListID).."/"..tostring(Field))))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`lists/{ListID}/{Field}`)))
 			end;
 
 			GetCards = function(ListID)
-				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl("lists/"..tostring(ListID).."/cards")))
+				local Response = HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`lists/{ListID}/cards`)))
 				if type(Response)=="table" then
 					return Response
 				else
@@ -295,85 +293,85 @@ return function(AppKey, Token)
 			end;
 
 			ArchiveAllCards = function(ListID)
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("lists/"..tostring(ListID).."/archiveAllCards")))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`lists/{ListID}/archiveAllCards`)))
 			end;
 
 			ArchiveList = function(ListID, Archive)
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("lists/"..tostring(ListID)..tostring(Archive or false))))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`lists/{ListID}{Archive or false}`)))
 			end;
 
 			GetListBoard = function(ListID)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("lists/"..tostring(ListID).."/board")))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`lists/{ListID}/board`)))
 			end;
 
 			MakeCard = function(ListID, Name, Description, Extra)
 				local Extra = Extra or ""
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("lists/"..tostring(ListID).."/cards"),"&name="..HttpFunctions.UrlEncode(Name).."&desc="..HttpFunctions.UrlEncode(Description)..Extra,2))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`lists/{ListID}/cards`),`&name={HttpFunctions.UrlEncode(Name)}&desc={HttpFunctions.UrlEncode(Description)}{Extra}`,2))
 			end;
 		};
 
 		Cards = {
 			ArchiveCard = function(CardID, Archive)
-				local Request = HttpFunctions.Request(GetUrl("cards/"..tostring(CardID)),"PUT",{},{closed = Archive or false})
+				local Request = HttpFunctions.Request(GetUrl(`cards/{CardID}`),"PUT",{},{closed = Archive or false})
 				return HttpFunctions.Decode(Request)
 			end;
 
 			DeleteCard = function(CardID)
-				local Request = HttpFunctions.Request(GetUrl("cards/"..tostring(CardID)),"DELETE",{},{})
+				local Request = HttpFunctions.Request(GetUrl(`cards/{CardID}`),"DELETE",{},{})
 				return HttpFunctions.Decode(Request)
 			end;
 
 			GetCardField = function(CardID, Field)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("cards/"..tostring(CardID).."/"..tostring(Field))))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`cards/{CardID}/{Field}`)))
 			end;
 
 			GetComments = function(CardID)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("cards/"..tostring(CardID).."/actions?filter=commentCard")))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`cards/{CardID}/actions?filter=commentCard`)))
 			end;
 
 			DeleteComment = function(CardID, CommentID)
-				local Request = HttpFunctions.Request(GetUrl("cards/"..tostring(CardID).."/actions/"..tostring(CommentID).."/comments"), "DELETE", {}, {})
+				local Request = HttpFunctions.Request(GetUrl(`cards/{CardID}/actions/{CommentID}/comments`), "DELETE", {}, {})
 				return HttpFunctions.Decode(Request)
 			end;
 
 			AddComment = function(CardID, Text)
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("cards/"..tostring(CardID).."/actions/comments"),"&text="..HttpFunctions.UrlEncode(Text),2))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`cards/{CardID}/actions/comments`),`&text={HttpFunctions.UrlEncode(Text)}`,2))
 			end;
 
 			AddLabel = function(CardID, LabelID)
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("cards/"..tostring(CardID).."idLabels"),"&value="..HttpFunctions.UrlEncode(LabelID),2))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl(`cards/{CardID}/idLabels`),`&value={HttpFunctions.UrlEncode(LabelID)}`,2))
 			end;
 
 			RemoveLabel = function(CardID, LabelID)
-				local Request = HttpFunctions.Request(GetUrl("cards/"..tostring(CardID).."/idLabels/"..tostring(LabelID)), "DELETE", {}, {})
+				local Request = HttpFunctions.Request(GetUrl(`cards/{CardID}/idLabels/{LabelID}`), "DELETE", {}, {})
 				return HttpFunctions.Decode(Request)
 			end;
 		};
 
 		Labels = {
 			GetLabel = function(LabelID)
-				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl("labels/"..tostring(LabelID))))
+				return HttpFunctions.Decode(HttpFunctions.Get(GetUrl(`labels/{LabelID}`)))
 			end;
 
 			UpdateLabel = function(LabelID, Name, Color)
 				local Data = {name = Name}
 				if Color then Data.color = Color end
-				local Request = HttpFunctions.Request(GetUrl("labels/"..tostring(LabelID)),"PUT",{},Data)
+				local Request = HttpFunctions.Request(GetUrl(`labels/{LabelID}`),"PUT",{},Data)
 				return HttpFunctions.Decode(Request)
 			end;
 
 			DeleteLabel = function(LabelID)
-				local Request = HttpFunctions.Request(GetUrl("labels/"..tostring(LabelID)),"DELETE",{},{})
+				local Request = HttpFunctions.Request(GetUrl(`labels/{LabelID}`),"DELETE",{},{})
 				return HttpFunctions.Decode(Request)
 			end;
 
 			UpdateLabelField = function(LabelID, Field, Value)
-				local Request = HttpFunctions.Request(GetUrl("labels/"..tostring(LabelID).."/"..tostring(Field)),"PUT",{},{value = Value})
+				local Request = HttpFunctions.Request(GetUrl(`labels/{LabelID}/{Field}`),"PUT",{},{value = Value})
 			end;
 
 			CreateLabel = function(BoardID, Name, Color)
 				Color = Color or "null"
-				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("labels"),"&name="..HttpFunctions.UrlEncode(Name).."&color="..HttpFunctions.UrlEncode(Color).."&idBoard="..HttpFunctions.UrlEncode(BoardID),2))
+				return HttpFunctions.Decode(HttpFunctions.Post(GetUrl("labels"),`&name={HttpFunctions.UrlEncode(Name)}&color={HttpFunctions.UrlEncode(Color)}&idBoard={HttpFunctions.UrlEncode(BoardID)}`,2))
 			end;
 		};
 	}

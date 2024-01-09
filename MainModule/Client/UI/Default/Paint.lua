@@ -60,7 +60,7 @@ return function(data, env)
 		local pixel = pointer:Clone()
 		pixel.Name = "Pixel"
 		pixel.Parent = canvas
-		pixelCount.Text = "Pixels: "..tostring(pixelCount.Text:sub(9) + 1)
+		pixelCount.Text = `Pixels: {pixelCount.Text:sub(9) + 1}`
 	end)
 	
 	local clearButton = topbar:Add("TextButton", {
@@ -139,12 +139,12 @@ return function(data, env)
 	window:Ready()
 
 	service.UserInputService.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			hold = true
 		end
 	end)
 	service.UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			hold = false
 		end
 	end)

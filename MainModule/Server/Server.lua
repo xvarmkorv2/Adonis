@@ -7,7 +7,7 @@ This module is part of Adonis 1.0 and contains lots of old code;
 future updates will generally only be made to fix bugs, typos or functionality-affecting problems.
 
 If you find bugs or similar issues, please submit an issue report
-on our GitHub repository here: https://github.com/Epix-Incorporated/Adonis/issues/new/choose
+on our GitHub repository.
 																																																																																						]]
 
 --// Module LoadOrder List; Core modules need to be loaded in a specific order; If you create new "Core" modules make sure you add them here or they won't load
@@ -37,6 +37,7 @@ local CORE_LOADING_ORDER = table.freeze {
 --//   Say hi to people reading the script
 --//   ...
 --//   "Hi." - Me
+--//	Your mom
 
 --// Holiday roooaaAaaoooAaaooOod
 local _G, game, script, getfenv, setfenv, workspace,
@@ -78,7 +79,6 @@ local SERVICES_WE_USE = table.freeze {
 	"StarterPlayer";
 	"GroupService";
 	"MarketplaceService";
-	"MarketplaceService";
 	"TestService";
 	"HttpService";
 	"RunService";
@@ -114,7 +114,7 @@ local logError = function(plr, err)
 	end
 
 	if server.Core and server.Core.DebugMode then
-		warn("::Adonis:: Error: "..tostring(plr)..": "..tostring(err))
+		warn(`::Adonis:: Error: {plr}: {err}`)
 	end
 
 	if server and server.Logs then
@@ -126,7 +126,6 @@ local logError = function(plr, err)
 	end
 end
 
---local message = function(...) local Str = "" game:GetService("TestService"):Message(Str) end
 local print = function(...)
 	print(":: Adonis ::", ...)
 end
@@ -134,16 +133,6 @@ end
 local warn = function(...)
 	warn(":: Adonis ::", ...)
 end
-
---[[
-local require = function(mod, ...)
-	if mod and tonumber(mod) then
-		warn("Requiring Module by ID; Expand for module URL > ", {URL = "https://www.roblox.com/library/".. moduleId})
-	end
-
-	return require(mod, ...)
-end
---]]
 
 local function CloneTable(tab, recursive)
 	local clone = table.clone(tab)
@@ -169,6 +158,7 @@ local function Pcall(func, ...)
 	return pSuccess, pError
 end
 
+-- Use `task.spawn(pcall, ...)`, `task.spawn(Pcall, f, ...)` or `task.spawn(xpcall, f, handler, ...)` instead
 local function cPcall(func, ...)
 	return Pcall(function(...)
 		return coroutine.resume(coroutine.create(func), ...)
@@ -214,31 +204,34 @@ local function LoadModule(module, yield, envVars, noEnv, isCore)
 
 	if type(plug) == "function" then
 		if isCore then
-			local ran,err = service.TrackTask("CoreModule: ".. tostring(module), plug, GetVargTable(), GetEnv)
-			if not ran then
-				warn("Core Module encountered an error while loading:", module)
-				warn(err)
-			else
-				return err;
-			end
-		elseif yield then
+			local ran, err = service.TrackTask(
+				`CoreModule: {module}`,
+				(noEnv and plug) or setfenv(plug, GetEnv(getfenv(plug), envVars)),
+				function(err)
+					warn(`Module encountered an error while loading: {module}\n{err}\n{debug.traceback()}`)
+				end,
+				GetVargTable(),
+				GetEnv
+			)
+			return err
+
+		 --[[elseif yield then (all pcalls yield by default for a quite a while time now)
 			--Pcall(setfenv(plug,GetEnv(getfenv(plug), envVars)))
-			local ran,err = service.TrackTask("Plugin: ".. tostring(module), (noEnv and plug) or setfenv(plug, GetEnv(getfenv(plug), envVars)), GetVargTable())
-			if not ran then
-				warn("Plugin Module encountered an error while loading:", module)
-				warn(err)
-			else
-				return err;
-			end
+			local ran,err = service.TrackTask(`Plugin: {module}`, (noEnv and plug) or setfenv(plug, GetEnv(getfenv(plug), envVars)),function(err)
+				warn(`Module encountered an error while loading: {module}\n{err}\n{debug.traceback()}`)
+			end, GetVargTable())
+			return err;]]
 		else
-			--service.Threads.RunTask("PLUGIN: "..tostring(module),setfenv(plug,GetEnv(getfenv(plug), envVars)))
-			local ran, err = service.TrackTask("Thread: Plugin: ".. tostring(module), (noEnv and plug) or setfenv(plug, GetEnv(getfenv(plug), envVars)), GetVargTable())
-			if not ran then
-				warn("Plugin Module encountered an error while loading:", module)
-				warn(err)
-			else
-				return err;
-			end
+			--service.Threads.RunTask(`PLUGIN: {module}`,setfenv(plug,GetEnv(getfenv(plug), envVars)))
+			local ran, err = service.TrackTask(
+				`Plugin: {module}`,
+				(noEnv and plug) or setfenv(plug, GetEnv(getfenv(plug), envVars)),
+				function(err)
+					warn(`Module encountered an error while loading: {module}\n{err}\n{debug.traceback()}`)
+				end,
+				GetVargTable()
+			)
+			return err
 		end
 	else
 		server[module.Name] = plug
@@ -246,11 +239,11 @@ local function LoadModule(module, yield, envVars, noEnv, isCore)
 
 	if server.Logs then
 		server.Logs.AddLog(server.Logs.Script,{
-			Text = "Loaded Module: "..tostring(module);
+			Text = `Loaded Module: {module}`;
 			Desc = "Adonis loaded a core module or plugin";
 		})
 	end
-end;
+end
 
 --// WIP
 local function LoadPackage(package, folder, runNow)
@@ -272,7 +265,7 @@ local function LoadPackage(package, folder, runNow)
 				end
 			end
 		else
-			warn("Missing parent to unpack into for ".. tostring(curFolder))
+			warn(`Missing parent to unpack into for {curFolder}`)
 		end
 	end
 
@@ -282,13 +275,23 @@ end;
 local function CleanUp()
 	--local env = getfenv(2)
 	--local ran,ret = pcall(function() return env.script:GetFullName() end)
-	warn("Beginning Adonis cleanup & shutdown process...")
-	--warn("CleanUp called from "..tostring((ran and ret) or "Unknown"))
+	print("Beginning Adonis cleanup & shutdown process...")
+	--warn(`CleanUp called from {tostring((ran and ret) or "Unknown")}`)
 	--local loader = server.Core.ClientLoader
+	local data = service.UnWrap(server.Data)
+	if type(data) == "table" and typeof(service.UnWrap(data.Config)) == "Instance" then
+		local Settings: ModuleScript = service.UnWrap(data.Config):FindFirstChild("Settings")
+		if typeof(Settings) == "Instance" and Settings:IsA("ModuleScript") then
+			pcall(function()
+				table.clear(require(Settings))
+			end)
+		end
+	end
+
 	server.Model.Name = "Adonis_Loader"
 	server.Model.Parent = service.ServerScriptService
 	server.Running = false
-	
+
 	server.Logs.SaveCommandLogs()
 	server.Core.GAME_CLOSING = true;
 	server.Core.SaveAllPlayerData()
@@ -308,13 +311,7 @@ local function CleanUp()
 		pcall(server.Core.DisconnectEvent)
 	end
 
-	--[[delay(0, function()
-		for i,v in next,server do
-			server[i] = nil; --// Try to break it to prevent any potential hanging issues; Not very graceful...
-		end
-	--end)--]]
-
-	warn("Unloading complete")
+	print("Unloading complete")
 end;
 
 server = {
@@ -349,19 +346,17 @@ service = require(Folder.Shared.Service)(function(eType, msg, desc, ...)
 	if eType == "MethodError" then
 		if server and server.Logs and server.Logs.AddLog then
 			server.Logs.AddLog("Script", {
-				Text = "Cached method doesn't match found method: "..tostring(extra[1]);
-				Desc = "Method: "..tostring(extra[1])
+				Text = `Cached method doesn't match found method: {extra[1]}`;
+				Desc = `Method: {extra[1]}`
 			})
 		end
 	elseif eType == "ServerError" then
-		--print("Server error")
 		logError("Server", msg)
 	elseif eType == "TaskError" then
-		--print("Task error")
 		logError("Task", msg)
 	end
 end, function(c, parent, tab)
-	if not isModule(c) and c ~= server.Loader and c ~= server.Dropper and c ~= server.Runner and c ~= server.Model and c ~= script and c ~= Folder and parent == nil then
+	if not isModule(c) and c ~= server.Loader and c ~= server.Runner and c ~= server.Model and c ~= script and c ~= Folder and parent == nil then
 		tab.UnHook()
 	end
 end, ServiceSpecific, GetEnv(nil, {server = server}))
@@ -496,7 +491,7 @@ return service.NewProxy({
 			script:Destroy()
 			return "FAILED"
 		else
-			mutex = service.New("StringValue", {Name = "__Adonis_MODULE_MUTEX", Value = "Running"})
+			mutex = service.New("StringValue", {Name = "__Adonis_MODULE_MUTEX", Archivable = false, Value = "Running"})
 			local mutexBackup = mutex:Clone()
 			local function makePersistent(m)
 				local connection1, connection2 = nil, nil
@@ -522,7 +517,6 @@ return service.NewProxy({
 		end
 
 		--// Begin Script Loading
-		setfenv(1, setmetatable({}, {__metatable = unique}))
 		data = service.Wrap(data or {})
 
 		if not (data and data.Loader) then
@@ -532,6 +526,16 @@ return service.NewProxy({
 		if data and data.ModuleID == 8612978896 then
 			warn("Currently using Adonis Nightly MainModule; intended for testing & development only!")
 		end
+
+		if data and data.DebugMode == true then
+			warn("Adonis was loaded with DebugMode enabled; This is intended for development use only, certain debug features intended for development use will be enabled, which can weaken Adonis's security in a production environment.")
+			local AdonisDebugEnabled = service.New("BoolValue")
+			AdonisDebugEnabled.Name = "ADONIS_DEBUGMODE_ENABLED"
+			AdonisDebugEnabled.Value = true
+			AdonisDebugEnabled.Parent = Folder.Parent.Client
+		end
+		
+		setfenv(1, setmetatable({}, {__metatable = unique}))
 
 		--// Server Variables
 		local setTab = require(server.Deps.DefaultSettings)
@@ -544,7 +548,6 @@ return service.NewProxy({
 		server.Data = data or {}
 		server.Model = data.Model or service.New("Model")
 		server.ModelParent = data.ModelParent or service.ServerScriptService;
-		server.Dropper = data.Dropper or service.New("Script")
 		server.Loader = data.Loader or service.New("Script")
 		server.Runner = data.Runner or service.New("Script")
 		server.LoadModule = LoadModule
@@ -606,21 +609,22 @@ return service.NewProxy({
 
 		--// Require some dependencies
 		server.Typechecker = require(server.Shared.Typechecker)
-		server.Threading = require(server.Deps.ThreadHandler)
 		server.Changelog = require(server.Shared.Changelog)
 		server.Credits = require(server.Shared.Credits)
+		server.DLL = require(server.Shared.DoubleLinkedList)
+
 		do
 			local MaterialIcons = require(server.Shared.MatIcons)
 			server.MatIcons = setmetatable({}, {
 				__index = function(self, ind)
 					local materialIcon = MaterialIcons[ind]
 					if materialIcon then
-						self[ind] = "rbxassetid://"..materialIcon
+						self[ind] = `rbxassetid://{materialIcon}`
 						return self[ind]
 					end
 					return ""
 				end,
-				__metatable = "Adonis_MatIcons"
+				__metatable = if data.DebugMode then unique else "Adonis_MatIcons"
 			})
 		end
 
@@ -711,9 +715,9 @@ return service.NewProxy({
 		end
 
 		if data.Loader then
-			warn("Loading Complete; Required by "..tostring(data.Loader:GetFullName()))
+			print(`Loading Complete; Required by {data.Loader:GetFullName()}`)
 		else
-			warn("Loading Complete; No loader location provided")
+			print("Loading Complete; No loader location provided")
 		end
 
 		if server.Logs then
@@ -731,5 +735,5 @@ return service.NewProxy({
 	__tostring = function()
 		return "Adonis"
 	end;
-	__metatable = "Adonis";
+	__metatable = nil; -- This is now set in __call if DebugMode isn't enabled.
 })
