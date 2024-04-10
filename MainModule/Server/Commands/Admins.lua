@@ -19,6 +19,7 @@ return function(Vargs, env)
 			Args = {"player/user", "rank"};
 			Description = "Sets the admin rank of the target user(s); THIS SAVES!";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				assert(args[1], "Missing target user (argument #1)")
 				local rankName = assert(args[2], "Missing rank name (argument #2)")
@@ -62,6 +63,7 @@ return function(Vargs, env)
 			Args = {"player", "rank"};
 			Description = `Identical to {Settings.Prefix}setrank, but doesn't save`;
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				assert(args[1], "Missing target player (argument #1)")
 				local rankName = assert(args[2], "Missing rank name (argument #2)")
@@ -101,6 +103,7 @@ return function(Vargs, env)
 			Args = {"player", "level"};
 			Description = "Sets the target player(s) permission level for the current server; does not save";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				local senderLevel = data.PlayerData.Level
 				local newLevel = assert(tonumber(args[2]), "Level must be a number")
@@ -125,6 +128,7 @@ return function(Vargs, env)
 			Args = {"player/user / list entry", "temp? (true/false) (default: false)"};
 			Description = "Removes admin/moderator ranks from the target player(s); saves unless <temp> is 'true'";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				local target = assert(args[1], "Missing target user (argument #1)")
 				local temp = args[2] and args[2]:lower() == "true"
@@ -197,6 +201,7 @@ return function(Vargs, env)
 			Args = {"player"};
 			Description = "Removes the target players' admin powers for this server; does not save";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				local senderLevel = data.PlayerData.Level
 
@@ -223,6 +228,7 @@ return function(Vargs, env)
 			Args = {"player"};
 			Description = "Makes the target player(s) a temporary moderator; does not save";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				local senderLevel = data.PlayerData.Level
 
@@ -244,6 +250,7 @@ return function(Vargs, env)
 			Args = {"player/user"};
 			Description = "Makes the target player(s) a moderator; saves";
 			AdminLevel = "Admins";
+			Dangerous = true;
 			Function = function(plr: Player, args: {string}, data: {any})
 				local senderLevel = data.PlayerData.Level
 
@@ -271,7 +278,6 @@ return function(Vargs, env)
 			AdminLevel = "Admins";
 			Function = function(plr: Player, args: {string}, data: {any})
 				for _, v in service.GetPlayers() do
-					--Remote.Send(v, "Function", "ChatMessage", string.format("[%s] %s", Settings.SystemTitle, service.Filter(args[1], plr, v)), Color3.fromRGB(255,64,77))
 					if service.TextChatService and service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 						local TextToUse = args[1]
 						if data.Options.Chat ~= true then
@@ -412,7 +418,7 @@ return function(Vargs, env)
 
 		Notif = {
 			Prefix = Settings.Prefix;
-			Commands = {"setmessage", "notif", "setmsg"};
+			Commands = {"setmessage", "notif", "setmsg", "permhint"};
 			Args = {"message OR off"};
 			Filter = true;
 			Description = "Sets a small hint message at the top of the screen";
@@ -1048,7 +1054,7 @@ return function(Vargs, env)
 				assert(args[1], "No starterscript name provided!")
 
 				for _,v : Instance in service.StarterGui:GetChildren() do
-					if v:IsA("LocalScript") and v.Name:find("[Athena]") then
+					if v:IsA("LocalScript") and v.Name:find("[Adonis]") then
 						if v.Name:gsub("%[Adonis%] ", ""):lower() == args[1]:lower() or args[1]:lower() == "all" then
 							service.Delete(v)
 							Functions.Hint("Removed starter script "..v.Name, {plr})
@@ -1311,7 +1317,7 @@ return function(Vargs, env)
 					})
 				do
 					if Admin.CheckAuthority(plr, v, "server-ban", false) then
-						Admin.AddBan(v, reason, false, plr)
+						Admin.AddBan(v, reason, false, plr, "Server")
 						Functions.Hint(`Server-banned {service.FormatPlayer(v, true)}`, {plr})
 					end
 				end
@@ -1425,7 +1431,7 @@ return function(Vargs, env)
 			Commands = {"nil"};
 			Args = {"player"};
 			Hidden = true;
-			Description = "Sends the target player(s) to nil, where they will not show up on the player list and not normally be able to interact with the game";
+			Description = `Deletes the player forcefully, causing them to be kicked for "unexpected client behaviour"`;
 			AdminLevel = "Admins";
 			Function = function(plr: Player, args: {string})
 				for _, v in service.GetPlayers(plr, args[1]) do
@@ -1555,39 +1561,6 @@ return function(Vargs, env)
 				end
 				Commands.UnChar.Function(plr, args)
 				Commands.UnDisplayName.Function(plr, args)
-			end
-		};
-
-		IncognitoPlayerList = {
-			Prefix = Settings.Prefix;
-			Commands = {"incognitolist", "incognitoplayers"};
-			Args = {"autoupdate? (default: true)"};
-			Description = "Displays a list of incognito players in the server";
-			AdminLevel = "Admins";
-			Hidden = true;
-			ListUpdater = function(plr: Player)
-				local tab = {}
-				for p: Player, t: number in Variables.IncognitoPlayers do
-					if p.Parent == service.Players then
-						table.insert(tab, {
-							Text = service.FormatPlayer(p);
-							Desc = string.format("ID: %d | Went incognito at: %s", p.UserId, service.FormatTime(t));
-						})
-					end
-				end
-				return tab
-			end;
-			Function = function(plr: Player, args: {string})
-				local autoUpdate = string.lower(args[1])
-				Remote.RemoveGui(plr, "IncognitoPlayerList")
-				Remote.MakeGui(plr, "List", {
-					Name = "IncognitoPlayerList";
-					Title = "Incognito Players";
-					Icon = server.MatIcons["Admin panel settings"];
-					Tab = Logs.ListUpdaters.IncognitoPlayerList(plr);
-					Update = "IncognitoPlayerList";
-					AutoUpdate = if not args[1] or (autoUpdate == "true" or autoUpdate == "yes") then 1 else nil;
-				})
 			end
 		};
 	}
