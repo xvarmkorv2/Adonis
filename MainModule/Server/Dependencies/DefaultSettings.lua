@@ -271,7 +271,7 @@ settings.CommandCooldowns = {
 		Server = 0;
 		Cross = 0;
 	}
-]]	
+]]
 }
 
 settings.FunCommands = true				-- Are fun commands enabled?
@@ -296,6 +296,7 @@ settings.SaveCommandLogs = true	           -- If command logs are saved to the d
 settings.Notification = true	           -- Whether or not to show the "You're an admin" and "Updated" notifications
 settings.SongHint = true		           -- Display a hint with the current song name and ID when a song is played via :music
 settings.TopBarShift = false	           -- By default hints and notifications will appear from the top edge of the window. Set this to true if you don't want hints/notifications to appear in that region.
+settings.HiddenThemes = {}				   -- Hide themes from the theme selector tab inside the userpanel. Each theme name must be the specific name such as "Mobilius"
 settings.Messages = {}			           -- A list of notification messages to show HeadAdmins and above on join
 settings.AutoClean = false		           -- Will auto clean workspace of things like hats and tools
 settings.AutoCleanDelay = 60	           -- Time between auto cleans
@@ -375,7 +376,7 @@ settings.AntiNoclip = false					-- (Default: false)	Attempts to detect noclippin
 settings.AntiRootJointDeletion = false		-- (Default: false)	Attempts to detect paranoid and kills the player if found.
 settings.AntiMultiTool = false 				-- (Default: false)	Prevents multitool and because of that many other exploits.
 settings.AntiGod = false 					-- (Default: false)	If a player does not respawn when they should have they get respawned.
--- settings.AntiHumanoidDeletion and settings.ProtectHats have been superseded Workspace.RejectCharacterDeletions.
+-- settings.AntiHumanoidDeletion and settings.ProtectHats have been superseded by Workspace.RejectCharacterDeletions.
 
 settings.AntiSpeed = false 				-- (Default: false)	(Client-Sided) Attempts to detect speed exploits.
 settings.AntiBuildingTools = false		-- (Default: false)	(Client-Sided) Attempts to detect any HopperBin(s)/Building Tools added to the client.

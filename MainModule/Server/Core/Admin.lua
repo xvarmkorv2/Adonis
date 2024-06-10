@@ -439,7 +439,7 @@ return function(Vargs, GetEnv)
 		for i,argType in argTab do
 			local replaceWith = suppliedArgs[i]
 			if replaceWith then
-				out = string.gsub(out, SanitizePattern(argType), replaceWith)
+				out = string.gsub(out, SanitizePattern(argType), SanitizePattern(replaceWith))
 			end
 		end
 
@@ -666,6 +666,9 @@ return function(Vargs, GetEnv)
 				elseif filterName == "gamepass" then
 					local gamepassId = tonumber((string.match(filterData, "^%d+")))
 					return gamepassId and service.CheckPassOwnership(plr, gamepassId)
+				elseif filterName == "subscription" then
+					local subscriptionId = string.match(filterData, "^EXP%-%d+$")
+					return subscriptionId and service.CheckSubscriptionStatus(plr, subscriptionId)
 				else
 					local username, userId = string.match(check, "^(.*):(.*)")
 					if username and userId and (plr.UserId == tonumber(userId) or string.lower(plr.Name) == string.lower(username)) then
@@ -1478,7 +1481,16 @@ return function(Vargs, GetEnv)
 					local tAlias = stripArgPlaceholders(alias)
 					if not Admin.CheckAliasBlacklist(tAlias) then
 						local escAlias = SanitizePattern(tAlias)
-						if string.match(msg, `^{escAlias}`) or string.match(msg, `%s{escAlias}`) then
+						--// Ignore any "empty" aliases, aka aliases that would basically match any command
+						if string.len(Functions.Trim(escAlias)) == 0 then
+							continue
+						end
+						local trimmedMsg = Functions.Trim(msg)
+						--// Use Adonis split to better support various characters that string.split can't handle properly
+						local aliasCharacters = Functions.Split(trimmedMsg, Settings.SplitKey)
+						--// Matching an alias can result in an infinite loop like running !fire with the alias !f, it will infinitely run the !f alias
+						--// If you have an alias !f
+						if escAlias == aliasCharacters[1] or string.match(trimmedMsg, `%s{escAlias}`) then
 							msg = FormatAliasArgs(alias, cmd, msg)
 						end
 					end
@@ -1579,7 +1591,7 @@ return function(Vargs, GetEnv)
 				return false, "This command is not permitted as chat message (non-chattable command)."
 			end
 
-			local permAllowed = (cmd.Donors and (pDat.isDonor and (Settings.DonorCommands or cmd.AllowDonors)))
+			local permAllowed = (cmd.Donors and (pDat.isDonor and (Settings.DonorCommands or cmd.AllowDonors))) or (cmd.Agent and HTTP.Trello.CheckAgent) and HTTP.Trello.CheckAgent(pDat.Player)
 				or Admin.CheckComLevel(adminLevel, comLevel)
 
 			if permAllowed and not ignoreCooldown and type(pDat.Player) == "userdata" then

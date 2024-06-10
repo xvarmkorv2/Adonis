@@ -1,7 +1,6 @@
 server = nil
 client = nil
 Pcall = nil
-cPcall = nil
 Routine = nil
 logError = nil
 
@@ -72,6 +71,7 @@ return function(errorHandler, eventChecker, fenceSpecific, env)
 	local service;
 	local passOwnershipCache = {}
 	local assetOwnershipCache = {}
+	local subscriptionStatusCache = {}
 	local assetInfoCache = {}
 	local groupInfoCache = {}
 	local changedLocale = nil -- This has to be nil at start, it will only be set once the user changes it in the game
@@ -946,6 +946,16 @@ return function(errorHandler, eventChecker, fenceSpecific, env)
 			})
 		end;
 
+		UnsanitizeXML = function(str)
+			return string.gsub(str, "&%w+;", {
+				["&apos;"] = "'",
+				["&quot;"] = "\"",
+				["&lt;"] = "<",
+				["&gt;"] = ">",
+				["&amp;"] = "&"
+			})
+		end;
+
 		SanitizeXML = function(str)
 			return string.gsub(str, "['\"<>&]", {
 				["'"] = "&apos;",
@@ -1123,6 +1133,37 @@ return function(errorHandler, eventChecker, fenceSpecific, env)
 
 				if suc then
 					cacheTab.owned = toBoolean(ers)
+				end
+
+				return cacheTab.owned
+			elseif currentCache then
+				return currentCache.owned
+			end
+		end;
+
+		CheckSubscriptionStatus = function(player, subsriptionId)
+			if type(player) == "number" then
+				player = service.Players:GetPlayerByUserId(player)
+			end
+
+			local cacheIndex = `{player.UserId}-{subsriptionId}`
+			local currentCache = subscriptionStatusCache[cacheIndex]
+
+			if currentCache and currentCache.owned then
+				return true
+			elseif (currentCache and (os.time()-currentCache.lastUpdated > 60)) or not currentCache then
+				local cacheTab = {
+					owned = (currentCache and currentCache.owned) or false;
+					lastUpdated = os.time();
+				}
+				subscriptionStatusCache[cacheIndex] = cacheTab
+
+				local suc,ers = pcall(function()
+					return service.MarketplaceService:GetUserSubscriptionStatusAsync(player, subsriptionId)
+				end)
+
+				if suc then
+					cacheTab.owned = toBoolean(ers.IsSubscribed)
 				end
 
 				return cacheTab.owned
@@ -1449,7 +1490,6 @@ return function(errorHandler, eventChecker, fenceSpecific, env)
 		Routine = Routine;
 		Running = true;
 		Pcall = Pcall;
-		cPcall = cPcall;
 		Threads = Threads;
 		DataModel = game;
 		WrapService = WrapService;

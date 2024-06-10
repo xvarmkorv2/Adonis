@@ -561,6 +561,7 @@ return function(Vargs, GetEnv)
 				"ScreenGui";
 				"GuiMain";
 				"Frame";
+				"CanvasGroup";
 				"TextButton";
 				"TextLabel";
 				"ImageButton";
@@ -1008,6 +1009,16 @@ return function(Vargs, GetEnv)
 			})
 			local track = animator:LoadAnimation(anim)
 			track:Play()
+		end;
+
+		StopAnimation = function()
+			local char = service.Player.Character
+			local human = char and char:FindFirstChildOfClass("Humanoid")
+			local animator = human and human:FindFirstChildOfClass("Animator") or human and human:WaitForChild("Animator", 9e9)
+			if not animator then return end
+			for _, v in animator:GetPlayingAnimationTracks() do
+				if v.Name == "ADONIS_Animation" then v:Stop() end
+			end
 		end;
 
 		SetLighting = function(prop,value)
@@ -1760,7 +1771,7 @@ return function(Vargs, GetEnv)
 
 			}
 
-			game:service("ContentProvider"):Preload(`rbxassetid://{audioId}`)
+			game:GetService("ContentProvider"):Preload(`rbxassetid://{audioId}`)
 
 			local function getText(str)
 				local tab = {}

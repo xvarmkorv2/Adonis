@@ -1,9 +1,5 @@
-server = nil;
-service = nil;
 
 return function(Vargs, GetEnv)
-	local env = GetEnv(nil, {script = script})
-	setfenv(1, env)
 
 	local server = Vargs.Server;
 	local service = Vargs.Service;
@@ -14,7 +10,9 @@ return function(Vargs, GetEnv)
 
 	local LastDateTime, Messages = "Loading...", {"The messages haven't loaded. Please comeback later..."}
 	task.spawn(xpcall, function()
-		print("Requiring Alerts Module by ID; Expand for module URL > ", {URL = "https://www.roblox.com/library/8096250407/Adonis-Alerts-Module"})
+		if not server.Core.SilentStartup then
+			print("Requiring Alerts Module by ID; Expand for module URL > ", {URL = "https://www.roblox.com/library/8096250407/Adonis-Alerts-Module"})
+		end
 
 		local r, AlertTab = xpcall(require, function()
 			warn("Something went wrong while requiring the urgent messages module");
@@ -32,7 +30,7 @@ return function(Vargs, GetEnv)
 		local function checkDoNotify(p, data)
 			local lastMessage = data.LastUrgentMessage or 0;
 
-			if lastMessage < MessageVersion and os.time()-MessageDate <= MessageDuration then
+			if lastMessage < MessageVersion and os.time() - MessageDate <= MessageDuration then
 				if MessageAdminType == "Players" then
 					return true
 				elseif MessageAdminType == "Donors" then
@@ -57,7 +55,7 @@ return function(Vargs, GetEnv)
 			end
 		end
 
-		for _, p in ipairs(service.Players:GetPlayers()) do
+		for _, p in service.Players:GetPlayers() do
 			task.spawn(pcall, onPlayerAdded, p)
 		end
 

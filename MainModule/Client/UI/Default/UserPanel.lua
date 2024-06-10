@@ -256,7 +256,7 @@ return function(data, env)
 										Remote.Send("SaveTableAdd", tabPath or setting, entryText.Text)
 										table.insert(tab, entryText.Text)
 									end
-									wait(0.5)
+									task.wait(0.5)
 									entryBox.Visible = false
 									inputBlock = false
 									showItems()
@@ -302,7 +302,7 @@ return function(data, env)
 							Remote.Send("SaveTableRemove", tabPath or setting, selected.Value)
 							table.remove(tab, selected.Index)
 							showItems()
-							wait(0.5)
+							task.wait(0.5)
 							inputBlock = false
 						end
 					end
@@ -334,7 +334,7 @@ return function(data, env)
 		end
 	end
 
-	if window then	
+	if window then
 		local commandPrefix = ":"
 		local playerData, chatMod, settingsData
 		local tabFrame = window:Add("TabFrame", {
@@ -414,7 +414,9 @@ return function(data, env)
 					MouseButton1Down = function()
 						UI.Make("List", {
 							Title = "Changelog";
-							Table = client.Changelog;
+							Table = client.FormattedChangelog;
+							RichText = true;
+							Size = {500, 400};
 						})
 					end
 				}
@@ -535,7 +537,7 @@ return function(data, env)
 			local function updateStatus()
 				dStatus.Text = "Updating..."
 				dStatus.Text = Remote.Get("UpdateDonor", playerData.Donor)
-				wait(0.5)
+				task.wait(0.5)
 				dStatus.Text = "Donated"
 			end
 
@@ -1021,6 +1023,7 @@ return function(data, env)
 				Position = UDim2.new(0, 10, 0, 35);
 				Size = UDim2.new(1, -20, 0, 20);
 				ClearTextOnFocus = false;
+				PlaceholderText = `{commandPrefix}refresh`;
 				TextChanged = function(newText, enter, box)
 					curCommandText = newText
 				end
@@ -1283,6 +1286,7 @@ return function(data, env)
 
 			commandBox = binderBox:Add("TextBox", {
 				Position = UDim2.new(0, 10, 0, 35);
+				PlaceholderText = `{commandPrefix}fly <arg1> | {commandPrefix}god <arg1>`;
 				Size = UDim2.new(1, -20, 0, 20);
 				ClearTextOnFocus = false;
 				TextChanged = function(newText, enter, box)
@@ -1292,6 +1296,7 @@ return function(data, env)
 
 			aliasBox = binderBox:Add("TextBox", {
 				Text = "";
+				PlaceholderText = `{commandPrefix}flygod`;
 				ClearTextOnFocus = false;
 				Position = UDim2.new(0, 10, 0, 90);
 				Size = UDim2.new(1, -20, 0, 20);
@@ -1485,7 +1490,7 @@ return function(data, env)
 								end
 							end)
 
-							repeat wait() until gotKey
+							repeat task.wait() until gotKey
 
 							Variables.CustomConsoleKey = gotKey
 							event:Disconnect()
@@ -1505,7 +1510,7 @@ return function(data, env)
 						local themes = {"Game Theme"}
 						for _, v in ipairs(client.UIFolder:GetChildren()) do
 							local theme = (string.sub(v.Name, 1, 5) == "NoEnv" and string.sub(v.Name, 7)) or v.Name
-							if theme ~= "README" then
+							if theme ~= "README" and v:GetAttribute("Hidden") ~= true then
 								table.insert(themes, theme)
 							end
 						end

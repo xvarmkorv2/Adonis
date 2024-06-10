@@ -223,7 +223,6 @@ return function(Vargs, GetEnv)
 					local event = service.New("RemoteEvent", {Name = Core.Name, Archivable = false}, true, true)
 					local func = service.New("RemoteFunction", {Name = "__FUNCTION", Parent = event}, true, true)
 					local secureTriggered = true
-					local tripDet = math.random()
 
 					local function secure(ev, name, parent)
 						return ev.Changed:Connect(function()
@@ -244,7 +243,6 @@ return function(Vargs, GetEnv)
 					end
 
 					Core.DisconnectEvent()
-					Core.TripDet = tripDet
 
 					rTable.Events = {}
 					rTable.Object = event
@@ -434,7 +432,7 @@ return function(Vargs, GetEnv)
 				if not p.Parent then
 					return false
 				elseif not parentObj then
-					p:Kick("\n[CLI-102495] Loading Error \nPlayerGui Missing (Waited 10 Minutes)")
+					p:Kick("[CLI-102495] Loading Error - PlayerGui Missing (Waited 10 Minutes)")
 					return false
 				end
 
@@ -486,14 +484,14 @@ return function(Vargs, GetEnv)
 				end)
 
 				if not ok then
-					p:Kick(`\n[CLI-192385] Loading Error \n[HookClient Error: {err}]`)
+					p:Kick(`[CLI-192385] Loading Error [HookClient Error: {err}]`)
 					return false
 				else
 					return true
 				end
 			else
 				if p and p.Parent then
-					p:Kick("\n[CLI-5691283] Loading Error \n[HookClient: Keys Missing]")
+					p:Kick("[CLI-5691283] Loading Error [HookClient: Keys Missing]")
 				end
 			end
 		end;
@@ -593,7 +591,7 @@ return function(Vargs, GetEnv)
 
 		Bytecode = function(str: string)
 			if Core.BytecodeCache[str] then return Core.BytecodeCache[str] end
-			local f, buff = Core.Loadstring(str)
+			local f, buff = Core.Loadstring(str, "LuaC")
 			Core.BytecodeCache[str] = buff
 			return buff
 		end;
@@ -621,7 +619,7 @@ return function(Vargs, GetEnv)
 			local wrapped = Core.RegisterScript({
 				Script = scr;
 				Code = execCode;
-				Source = Core.Bytecode(source);
+				Source = scr:IsA("LocalScript") and Core.Bytecode(source) or source;
 				noCache = noCache;
 				runLimit = runLimit;
 			})
@@ -968,7 +966,7 @@ return function(Vargs, GetEnv)
 							return nil
 						end
 						--// Prevent loading from DB to Trello ranks
-						if curName:match("Trello") and curTable and curTable.IsExternal then
+						if string.match(curName, "Trello") and curTable and curTable.IsExternal then
 							return nil
 						end
 					end
@@ -1199,7 +1197,7 @@ return function(Vargs, GetEnv)
 							Core.WarnedAboutAdminsLoadingWhenSaveAdminsIsOff = true
 						end
 						--// No adding to Trello or WebPanel rank users list via Datastore
-						if type(indList[3]) == 'string' and (indList[3]:match("Trello") or indList[3]:match("WebPanel")) then
+						if type(indList[3]) == 'string' and (string.match(indList[3], "Trello") or string.match(indList[3], "WebPanel")) then
 							return
 						end
 					end
@@ -1451,7 +1449,7 @@ return function(Vargs, GetEnv)
 						if data and data.Source then
 							local module;
 							if not exists then
-								module = require(server.Shared.FiOne:Clone())
+								module = require(srcScript:IsA("LocalScript") and server.Shared.FiOne:Clone() or Core.GetLoadstring())
 								table.insert(Core.ScriptCache, {
 									Script = srcScript;
 									Source = data.Source;

@@ -1196,7 +1196,7 @@ return function(Vargs, env)
 
 		ShowTrelloBansList = {
 			Prefix = Settings.Prefix;
-			Commands = {"SyncedTrelloBans", "TrelloBans", "TrelloBanList", "ShowTrelloBans"};
+			Commands = {"trellobans", "trellobanlist", "syncedtrellobans", "showtrellobans"};
 			Args = {};
 			Description = "Shows bans synced from Trello.";
 			TrelloRequired = true;
@@ -1962,9 +1962,7 @@ return function(Vargs, env)
 					
 					local banType = if v.BanType == "Server" then 
 						"SERVER" 
-					elseif v.BanType == "Global" then
-						"GLOBAL" 
-					else "UNKNOWN";
+					else "GLOBAL";
 				
 					count +=1
 					if type(v) == "table" then
@@ -1973,7 +1971,7 @@ return function(Vargs, env)
 						elseif v.UserId then
 							entry = `[{banType}] ID: {v.UserId}`
 						elseif v.Name then
-							entry = v.Name
+							entry = `[{banType}] {v.Name}`
 						end
 						if v.Reason then
 							reason = v.Reason
@@ -1981,6 +1979,8 @@ return function(Vargs, env)
 						if v.Moderator then
 							moderator = v.Moderator
 						end
+					else
+						entry = `[{banType}] {v}`
 					end
 					table.insert(tab, {
 						Text = tostring(entry),
@@ -2468,14 +2468,14 @@ return function(Vargs, env)
 			Prefix = Settings.Prefix;
 			Commands = {"resetstats", "rs"};
 			Args = {"player"};
-			Description = "Sets target player(s)'s leader stats to 0";
+			Description = "Sets target player(s)'s leader stats to 0 (N/A if it's a string)";
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
 				for _, v in service.GetPlayers(plr, string.lower(args[1])) do
 					task.spawn(pcall, function()
 						if v and v:FindFirstChild("leaderstats") then
 							for a, q in v.leaderstats:GetChildren() do
-								if q:IsA("IntValue") or q:IsA("NumberValue") then q.Value = 0 end
+								if q:IsA("IntValue") or q:IsA("NumberValue") then q.Value = 0 elseif q:IsA("StringValue") then q.Value = "N/A" end
 							end
 						end
 					end)
@@ -2515,7 +2515,7 @@ return function(Vargs, env)
 			Prefix = Settings.Prefix;
 			Commands = {"cape", "givecape"};
 			Args = {"player", "name/color", "material", "reflectance", "id"};
-			Description = "Gives the target player(s) the cape specified, do Settings.Prefixcapes to view a list of available capes ";
+			Description = `Gives the target player(s) the cape specified, do {Settings.Prefix}capes to view a list of available capes`;
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
 				local color="White"
@@ -3775,13 +3775,16 @@ return function(Vargs, env)
 								obj.Transparency = 1
 								if obj:FindFirstChild("face") then
 									obj.face.Transparency = 1
-								elseif obj:FindFirstChildOfClass("BillboardGui") then
+								end
+								if obj:FindFirstChildOfClass("BillboardGui") then
 									obj:FindFirstChildOfClass("BillboardGui").Enabled = false
 								end
 							elseif obj:IsA("Accoutrement") and obj:FindFirstChild("Handle") then
 								obj.Handle.Transparency = 1
 							elseif obj:IsA("ForceField") then
 								obj.Visible = false
+							elseif obj:IsA("BillboardGui") then
+								obj.Enabled = false
 							elseif obj.Name == "Head" then
 								local face = obj:FindFirstChildOfClass("Decal")
 								if face then
@@ -3808,13 +3811,16 @@ return function(Vargs, env)
 								obj.Transparency = 0
 								if obj:FindFirstChild("face") then
 									obj.face.Transparency = 0
-								elseif obj:FindFirstChildOfClass("BillboardGui") then
+								end
+								if obj:FindFirstChildOfClass("BillboardGui") then
 									obj:FindFirstChildOfClass("BillboardGui").Enabled = true
 								end
 							elseif obj:IsA("Accoutrement") and obj:FindFirstChild("Handle") then
 								obj.Handle.Transparency = 0
 							elseif obj:IsA("ForceField") and obj.Name ~="ADONIS_FULLGOD" then
 								obj.Visible = true
+							elseif obj:IsA("BillboardGui") then
+								obj.Enabled = true
 							elseif obj.Name == "Head" then
 								local face = obj:FindFirstChildOfClass("Decal")
 								if face then
@@ -4568,6 +4574,7 @@ return function(Vargs, env)
 						if
 							Remote.MakeGuiGet(v, "Notification", {
 								Title = "Teleport";
+								Icon = server.MatIcons["QR code scanner"];
 								Text = if reservedServerInfo then string.format("Click to teleport to server %s.", args[2]) else string.format("Click to teleport to place %d.", placeId);
 								Time = 30;
 								OnClick = Core.Bytecode("return true");
@@ -4636,14 +4643,14 @@ return function(Vargs, env)
 
 		GRPlaza = {
 			Prefix = Settings.Prefix;
-			Commands = {"grplaza", "grouprecruitingplaza", "groupplaza"};
+			Commands = {"plazaconnect", "grplaza", "grouprecruitingplaza", "groupplaza"};
 			Args = {"player"};
-			Description = "Teleports the target player(s) to the Group Recruiting Plaza to look for potential group members";
+			Description = "Teleports the target player(s) to Plaza Connect to look for potential group members";
 			NoStudio = true;
 			Hidden = true;
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
-				Functions.Notification("Teleport", "Click to teleport to GRP", service.GetPlayers(plr, args[1]), 30, "MatIcon://QR code scanner", Core.Bytecode("service.TeleportService:Teleport(5118029260)"))
+				Functions.Notification("Teleport", "Click to teleport to Plaza Connect", service.GetPlayers(plr, args[1]), 30, "MatIcon://QR code scanner", Core.Bytecode("service.TeleportService:Teleport(5118029260)"))
 			end
 		};
 
@@ -6857,7 +6864,7 @@ return function(Vargs, env)
 			Prefix = Settings.Prefix;
 			Commands = {"freecam"};
 			Args = {"player"};
-			Description = "Makes it so the target player(s)'s cam can move around freely (Press Space or Shift+P to toggle freecam)";
+			Description = "Makes it so the target player(s)'s cam can move around freely (Press Shift+P, F, or DPadLeft to toggle freecam)";
 			AdminLevel = "Moderators";
 			Function = function(plr: Player, args: {string})
 				for _, v in service.GetPlayers(plr, args[1]) do
@@ -6872,10 +6879,7 @@ return function(Vargs, env)
 					freecam.ResetOnSpawn = false
 					freecam.Freecam.Disabled = false
 					freecam.Parent = plrgui
-
-					if Settings.CommandFeedback then
-						Functions.Notification("Notification", "Freecam has been enabled. Press Shift+P to toggle freecam on or off.", {v}, 15)
-					end
+					Functions.Notification("Notification", "Freecam has been enabled. Press Shift+P, F, or DPadLeft to toggle freecam on or off.", {v}, 15)
 				end
 			end
 		};
@@ -6897,10 +6901,7 @@ return function(Vargs, env)
 
 						Remote.Send(v, "Function", "SetView", "reset")
 						service.Debris:AddItem(freecam, 2)
-
-						if Settings.CommandFeedback then
-							Functions.Notification("Notification", "Freecam has been disabled.", {v}, 15)
-						end
+						Functions.Notification("Notification", "Freecam has been disabled.", {v}, 15)
 					end
 				end
 			end

@@ -12,7 +12,7 @@ return function(data, env)
 	if env then
 		setfenv(1, env)
 	end
-	
+
 	local genPlayerList = nil
 	local genWorkspaceInfo = nil
 	local window = client.UI.Make("Window", {
@@ -163,6 +163,10 @@ return function(data, env)
 		end)
 
 	end
+	
+	local success, isAmerica = xpcall(function()
+		return service.LocalizationService:GetCountryRegionForPlayerAsync(service.Players.LocalPlayer) == "US"
+	end, function() return false end)
 
 	do
 
@@ -175,8 +179,8 @@ return function(data, env)
 					{"Country", serii.country or "[Error]"},
 					{"Region", serii.region or "[Error]"},
 					{"City", serii.city or "[Error]"},
-					{"Zipcode", serii.zipcode or "[Error]"},
-					{"IP Address", serii.query or "[Error]"},
+					{if isAmerica then "Zipcode" else "Postcode", serii.zipcode or "[Error]"},
+					{"IP Address", serii.ip or "[Error]"},
 					{"Coordinates", serii.coords or "[Error]"},
 					}) do table.insert(entries, v) end
 			else

@@ -50,7 +50,6 @@ return function(Vargs, GetEnv)
 	local Kick = Player.Kick
 	local isXbox = service.GuiService:IsTenFootInterface()
 	local isMobile = service.UserInputService.TouchEnabled and not service.UserInputService.KeyboardEnabled and not service.UserInputService.MouseEnabled
-	local hyperionEnabled = not isXbox and not isMobile and (#tostring(tonumber(string.sub(tostring{}, 8))) > 10)
 
 	local function Init()
 		UI = client.UI;
@@ -81,7 +80,7 @@ return function(Vargs, GetEnv)
 
 	local Detected = function(action, info, nocrash)
 		if NetworkClient and action ~= "_" then
-			pcall(Send, "D".."e".."t".."e".."c".."t".."e".."d", action, tostring(info)..(hyperionEnabled and " - Hyperion is enabled" or isXbox and " - On Xbox" or isMobile and " - On mobile" or ""))
+			pcall(Send, "D".."e".."t".."e".."c".."t".."e".."d", action, tostring(info)..(isXbox and " - On Xbox" or isMobile and " - On mobile" or ""))
 			task.wait(0.5)
 			if action == "k".."i".."c".."k" then
 				if not isStudio then
@@ -198,7 +197,7 @@ return function(Vargs, GetEnv)
 	end
 
 	do
-		local callStacks = {
+		local callStacks = table.freeze{
 			indexInstance = {},
 			newindexInstance = {},
 			namecallInstance = {},
@@ -243,8 +242,8 @@ return function(Vargs, GetEnv)
 			end
 		end
 
-		local detectors = {
-			indexInstance = {"kick", function()
+		local detectors = table.freeze{
+			indexInstance = table.freeze{"kick", function()
 				local callstackInvalid = false
 				local metamethod
 
@@ -275,7 +274,7 @@ return function(Vargs, GetEnv)
 
 				return not compareTables(errorMessages["indexInstance"], {err, err2, err3})
 			end},
-			newindexInstance = {"kick", function()
+			newindexInstance = table.freeze{"kick", function()
 				local callstackInvalid = false
 				local metamethod
 
@@ -307,7 +306,7 @@ return function(Vargs, GetEnv)
 
 				return not compareTables(errorMessages["newindexInstance"], {err, err2, err3})
 			end},
-			namecallInstance = {"kick", function()
+			namecallInstance = table.freeze{"kick", function()
 				local callstackInvalid = false
 				local metamethod
 
@@ -337,7 +336,7 @@ return function(Vargs, GetEnv)
 
 				return not compareTables(errorMessages["namecallInstance"], {err, err2, err3})
 			end},
-			indexEnum = {"kick", function()
+			indexEnum = table.freeze{"kick", function()
 				local callstackInvalid = false
 				local metamethod
 
@@ -368,7 +367,7 @@ return function(Vargs, GetEnv)
 
 				return not compareTables(errorMessages["indexEnum"], {err, err2, err3})
 			end},
-			namecallEnum = {"kick", function()
+			namecallEnum = table.freeze{"kick", function()
 				local callstackInvalid = false
 				local metamethod
 
@@ -398,7 +397,7 @@ return function(Vargs, GetEnv)
 
 				return not compareTables(errorMessages["namecallEnum"], {err, err2, err3})
 			end},
-			eqEnum = {"kick", function()
+			eqEnum = table.freeze{"kick", function()
 				return not (Enum.HumanoidStateType.Running == Enum.HumanoidStateType.Running)
 			end},
 		}

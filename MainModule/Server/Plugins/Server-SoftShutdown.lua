@@ -3,9 +3,7 @@
 --// GitHub@Expertcoderz was here to make things look better
 
 return function(Vargs, GetEnv)
-	local env = GetEnv(nil, {script = script})
-	setfenv(1, env)
-
+	
 	local server = Vargs.Server
 	local service = Vargs.Service
 
@@ -16,7 +14,7 @@ return function(Vargs, GetEnv)
 	local TeleportService: TeleportService = service.TeleportService
 	local Players: Players = service.Players
 	local teleportedPlayers = setmetatable({}, {__mode = "k"})
-	local isPrivateServer = game.PrivateServerId ~= "" and game.PrivateServerOwnerId == 0
+	local isReservedServer = #game.PrivateServerId > 0 and game.PrivateServerOwnerId == 0
 
 	local PARAMETER_NAME = "ADONIS_SOFTSHUTDOWN"
 	local PARAMETER_2_NAME = "ADONIS_SHUTDOWN_REJOIN"
@@ -28,58 +26,73 @@ return function(Vargs, GetEnv)
 			if teleportedPlayers[player] < MAX_RETRIES then
 				task.wait(RETRY_WAIT * teleportedPlayers[player])
 				teleportedPlayers[player] += 1
-				Logs:AddLog("Script", `Failed to teleport {player.Name} {isPrivateServer and "back to the main game" or "to a temporary softshutdown server"} due to {result.Name}. Retrying... Details: {message}`)
-				Functions.Notification("Teleport failed", `SoftShutdown failed to teleport {isPrivateServer and "back to the main game" or "to a temporary softshutdown server"}. Retrying...`, {player}, 10, "MatIcon://Warning")
+				Logs:AddLog("Script", `Failed to teleport {player.Name} {isReservedServer and "back to the main game" or "to a temporary softshutdown server"} due to {result.Name}. Retrying... Details: {message}`)
+				Functions.Notification("Teleport failed", `SoftShutdown failed to teleport {isReservedServer and "back to the main game" or "to a temporary softshutdown server"}. Retrying...`, {player}, 10, "MatIcon://Warning")
 				TeleportService:Teleport(game.PlaceId, player, {[PARAMETER_2_NAME] = true})
 			else
-				Logs:AddLog("Script", `Failed to teleport {player.Name} {isPrivateServer and "back to the main game" or "to a temporary softshutdown server"} due to {result.Name}. Details: {message}`)
-				Logs:AddLog("Error", `Failed to teleport {player.Name} {isPrivateServer and "back to the main game" or "to a temporary softshutdown server"} to {result.Name}. Details: {message}`)
-				Functions.Notification("Teleport failed", `SoftShutdown failed to teleport {isPrivateServer and "back to the main game" or "to a temporary softshutdown server"}. Details {message}`, {player}, 35, "MatIcon://Error")
+				Logs:AddLog("Script", `Failed to teleport {player.Name} {isReservedServer and "back to the main game" or "to a temporary softshutdown server"} due to {result.Name}. Details: {message}`)
+				Logs:AddLog("Error", `Failed to teleport {player.Name} {isReservedServer and "back to the main game" or "to a temporary softshutdown server"} to {result.Name}. Details: {message}`)
+				Functions.Notification("Teleport failed", `SoftShutdown failed to teleport {isReservedServer and "back to the main game" or "to a temporary softshutdown server"}. Details {message}`, {player}, 35, "MatIcon://Error")
 			end
 		end
 	end)
 
-	if isPrivateServer then
-		--// This is a reserved server
+	if isReservedServer then
+		task.defer(function()
+			local waitTime = 5
+			local playersToTeleport = {}
 
-		local waitTime = 5
-		local playersToTeleport = {}
-		local jobid
-		local startTask, TeleportTask = service.Threads.NewTask("Teleport Players", function()
-			jobid = TeleportService:TeleportPartyAsync(game.PlaceId, playersToTeleport, {[PARAMETER_2_NAME] = true})
-		end)
-		local function teleport(player)
-			local joindata = player:GetJoinData()
-			local data = type(joindata) == "table" and joindata.TeleportData
+			local jobid
+			local startTask, TeleportTask = service.Threads.NewTask("Teleport Players", function()
+				jobid = TeleportService:TeleportPartyAsync(game.PlaceId, playersToTeleport, {[PARAMETER_2_NAME] = true})
+			end)
 
-			if type(data) == "table" and data[PARAMETER_NAME] then
-				Remote.RemoveGui(player, "Message")
-				Remote.MakeGui(player, "Message", {
-					Title = "Server Restart";
-					Message = "Teleporting back to main server..";
-					Scroll = false;
-					Time = 1000
-				})
+			local function teleport(player)
+				local joindata = player:GetJoinData()
+				local data = type(joindata) == "table" and joindata.TeleportData
 
-				task.wait(waitTime)
-				waitTime /= 2
+				if type(data) == "table" and data[PARAMETER_NAME] then
+					Remote.RemoveGui(player, "Message")
+					Remote.MakeGui(player, "Message", {
+						Title = "Server Restart";
+						Message = "Teleporting back to main server..";
+						Scroll = false;
+						Time = 1000
+					})
 
-				Logs:AddLog("Script", `Teleporting {player.Name} back to the main game`)
-				teleportedPlayers[player] = 1
-				table.insert(playersToTeleport, player)
+					task.wait(waitTime + 5)
+					waitTime /= 2
+					
+					Logs:AddLog("Script", `Teleporting {player.Name} back to the main game`)
+					teleportedPlayers[player] = 1
+					table.insert(playersToTeleport, player)
+				end
 			end
-		end
 
-		service.Events.PlayerAdded:Connect(function(player)
-			if TeleportTask.Running then
-				TeleportTask.Finished:wait()
+			if #service.Players:GetPlayers() == 0 then
+				service.Players.PlayerAdded:Wait()
 			end
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, jobid, player, "", {[PARAMETER_2_NAME] = true})
+
+			service.Players.PlayerAdded:Connect(function(player)
+				local joindata = player:GetJoinData()
+				local data = type(joindata) == "table" and joindata.TeleportData
+
+				if type(data) == "table" and data[PARAMETER_NAME] then
+					if TeleportTask.Running then
+						TeleportTask.Finished:wait()
+					end
+
+					TeleportService:TeleportToPlaceInstance(game.PlaceId, jobid, player, "", {[PARAMETER_2_NAME] = true})
+				end
+			end)
+			for _, player in service.Players:GetPlayers() do
+				teleport(player)
+			end
+
+			if #playersToTeleport > 0 then
+				startTask()
+			end
 		end)
-		for _, player in ipairs(service.GetPlayers()) do
-			teleport(player)
-		end
-		startTask()
 	end
 
 	Remote.Terminal.Commands.SoftShutdown = {
@@ -93,6 +106,7 @@ return function(Vargs, GetEnv)
 
 			local newserver = TeleportService:ReserveServer(game.PlaceId)
 			Functions.Message("Adonis", "Server Restart", "The server is restarting, please wait...", 'MatIcon://Hourglass empty', service.GetPlayers(), false, 1000)
+			
 			task.wait(2)
 
 			for _, v in Players:GetPlayers() do
@@ -118,7 +132,7 @@ return function(Vargs, GetEnv)
 		Args = {"reason"};
 		Description = "Restarts the server";
 		Filter = true;
-		NoStudio = true; --// TeleportService does not work in Studio 
+		NoStudio = true; --// TeleportService does not work in Studio
 		AdminLevel = "Admins";
 		Function = function(plr: Player, args: {string})
 			if #Players:GetPlayers() == 0 then return end
@@ -152,6 +166,7 @@ return function(Vargs, GetEnv)
 
 			local newserver = TeleportService:ReserveServer(game.PlaceId)
 			Functions.Message("Adonis", "Server Restart", "The server is restarting, please wait...", 'MatIcon://Hourglass empty', service.GetPlayers(), false, 1000)
+			
 			task.wait(1)
 
 			for _, v in Players:GetPlayers() do
@@ -185,10 +200,10 @@ return function(Vargs, GetEnv)
 			local time
 			if args[2] then
 				time = string.lower(args[2])
-				if time:sub(-1,-1)=="s" then
-					time = tonumber(time:sub(1,-2))
-				elseif time:sub(-1,-1)=="m" then
-					time = tonumber(time:sub(1,-2))*60
+				if string.sub(time, -1, -1) == "s" then
+					time = tonumber(string.sub(time, 1, -2))
+				elseif string.sub(time, -1, -1) == "m" then
+					time = tonumber(string.sub(time, 1, -2)) * 60
 				else
 					error("Invalid time specified.");
 				end
@@ -197,7 +212,7 @@ return function(Vargs, GetEnv)
 			if not Core.CrossServer("GlobalRestartRequest",
 				args[1] or "No reason specified.",
 				if args[2] then tonumber(args[2]) else args[2],
-				not (string.lower(args[3])=="no" or string.lower(args[3])=="false")
+				not (string.lower(args[3]) == "no" or string.lower(args[3]) == "false")
 				)
 			then
 				error("CrossServer handler not ready (try again later)")
