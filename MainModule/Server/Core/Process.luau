@@ -26,8 +26,8 @@ return function(Vargs, GetEnv)
 		logError = logError or env.logError;
 		Routine = Routine or env.Routine;
 		Commands = Remote.Commands
-		Decrypt = Remote.Decrypt
-		Encrypt = Remote.Encrypt
+		Decrypt = Remote.NewDecrypt
+		Encrypt = Remote.NewEncrypt
 		AddLog = Logs.AddLog
 		TrackTask = service.TrackTask
 		Pcall = server.Pcall
@@ -81,6 +81,10 @@ return function(Vargs, GetEnv)
 			end
 		end)
 
+		if Settings.G_Access_Key ~= "Example_Key" and Settings.Allowed_API_Calls.Client then
+			Remote._globalAccessHash = Functions.SHA256(Settings.G_Access_Key..game.GameId)
+		end
+
 		Process.Init = nil
 		AddLog("Script", "Processing Module Initialized")
 	end;
@@ -92,33 +96,61 @@ return function(Vargs, GetEnv)
 		service.RbxEvent(service.Players.PlayerAdded, service.EventTask("PlayerAdded", Process.PlayerAdded))
 		service.RbxEvent(service.Players.PlayerRemoving, service.EventTask("PlayerRemoving", Process.PlayerRemoving))
 
+		task.spawn(function()
+			local oldVer = tonumber(Core.GetData("VersionNumber"))
+
+			if oldVer and server.Version and server.Version > oldVer then
+				Process.SaveDatastoreVersionDebounce = true
+				table.insert(server.Messages, {
+					Level = 1;
+					Title = "Updated!";
+					Message = "Click to view the changelog.";
+					Time = 10;
+					Icon = "MatIcon://System upgrade";
+					onClick = Core.Bytecode(`client.Remote.Send("ProcessCommand","{Settings.Prefix}changelog")`);
+				})
+			end
+		end)
+
+		if Core.DebugMode == true then
+			table.insert(server.Messages, {
+				Level = 301;
+				Title = "Debug Mode Enabled";
+				Message = "Adonis is currently running in Debug Mode.";
+				Time = 10;
+				Icon = "MatIcon://Bug report";
+				onClick = Core.Bytecode(`client.Remote.Send("ProcessCommand","{Settings.Prefix}debugcmds")`);
+			})
+		end
+
+		if Settings.DataStoreKey == Defaults.Settings.DataStoreKey and Core.DebugMode == false then
+			table.insert(server.Messages, {
+				Level = 301;
+				Title = "Warning!";
+				Message = "Using default datastore key!";
+				Time = 15;
+				Icon = "MatIcon://Description";
+				onClick = Core.Bytecode([[
+					local window = client.UI.Make("Window", {
+						Title = "How to change the DataStore key";
+						Size = {700,300};
+						Icon = "rbxassetid://7510994359";
+					})
+
+					window:Add("ImageLabel", {
+						Image = "rbxassetid://1059543904";
+					})
+
+					window:Ready()
+			]])})
+		end
+
 		--// Load client onto existing players
 		if existingPlayers then
 			for i, p in existingPlayers do
 				Core.LoadExistingPlayer(p)
 			end
 		end
-
-		service.TrackTask("Thread: ChatCharacterLimit", function()
-			local ChatModules = service.Chat:WaitForChild("ClientChatModules", 5)
-			if ChatModules then
-				local ChatSettings = ChatModules:WaitForChild("ChatSettings", 5)
-				if ChatSettings then
-					local success, ChatSettingsModule = pcall(function()
-						return require(ChatSettings)
-					end)
-					if success then
-						local NewChatLimit = ChatSettingsModule.MaximumMessageLength
-						if NewChatLimit and type(NewChatLimit) == "number" then
-							Process.MaxChatCharacterLimit = NewChatLimit
-							AddLog("Script", `Chat Character Limit automatically set to {NewChatLimit}`)
-						end
-					else
-						AddLog("Script", "Failed to automatically get ChatSettings Character Limit, ignore if you use a custom chat system")
-					end
-				end
-			end
-		end)
 
 		Process.RunAfterPlugins = nil
 		AddLog("Script", "Process Module RunAfterPlugins Finished")
@@ -233,11 +265,11 @@ return function(Vargs, GetEnv)
 			end
 
 			if rateExceeded and not ratePass then
-				rateExceeded:fire(rateKey, rateCache.Rate, maxRate)
+				rateExceeded:Fire(rateKey, rateCache.Rate, maxRate)
 			end
 
 			if ratePassed and ratePass then
-				ratePassed:fire(rateKey, rateCache.Rate, maxRate)
+				ratePassed:Fire(rateKey, rateCache.Rate, maxRate)
 			end
 
 			return ratePass, didThrottle, canThrottle, rateCache.Rate, maxRate, throttleResetOs
@@ -254,10 +286,6 @@ return function(Vargs, GetEnv)
 			Reset = 40;
 		};
 		Chat = {
-			Rates = 10;
-			Reset = 1;
-		};
-		CustomChat = {
 			Rates = 10;
 			Reset = 1;
 		};
@@ -292,7 +320,6 @@ return function(Vargs, GetEnv)
 			Remote = 0.01;
 			Command = 0.1;
 			Chat = 0.1;
-			CustomChat = 0.1;
 			RateLog = 10;
 		};
 
@@ -309,7 +336,7 @@ return function(Vargs, GetEnv)
 				else
 					local keys = Remote.Clients[tostring(p.UserId)]
 					if keys and select("#", ...) <= Process.RemoteMaxArgCount then
-						local args = {...}
+						local args = table.pack(...)
 						local rateLimitCheck, _, _, curRemoteRate = RateLimit(p, "Remote")
 
 						keys.LastUpdate = os.time()
@@ -331,7 +358,7 @@ return function(Vargs, GetEnv)
 
 										return keys.Key
 										--else
-										--Anti.Detected(p, "kick","Communication Key Error (r10003)")
+										--Anti.Detected(p, "kick", "Communication Key Error (r10003)")
 									end
 								elseif cliData.Mode == "Fire" then
 									if keys.LoadingStatus == "WAITING_FOR_KEY" then
@@ -354,7 +381,7 @@ return function(Vargs, GetEnv)
 								end
 							elseif rateLimitCheck and string.len(com) <= Remote.MaxLen then
 								local comString = Decrypt(com, keys.Key, keys.Cache)
-								local command = (cliData.Mode == "Get" and Remote.Returnables[comString]) or Remote.Commands[comString]
+								local command = cliData.Mode == "Get" and Remote.Returnables[comString] or Remote.Commands[comString]
 
 								AddLog("RemoteFires", {
 									Text = string.format("%s fired %s; Arg1: %s", p.Name, comString, service.MaxLen(tostring(args[1]), 50));
@@ -373,8 +400,8 @@ return function(Vargs, GetEnv)
 									Anti.Detected(p, "Kick", "Invalid Remote Data (r10004)")
 								end
 							elseif rateLimitCheck and RateLimit(p, "RateLog") then
-								Anti.Detected(p, "Log", string.format("Firing RemoteEvent too quickly (>Rate: %s/sec)", curRemoteRate));
-								warn(string.format("%s is firing Adonis's RemoteEvent too quickly (>Rate: %s/sec)", p.Name, curRemoteRate));
+								Anti.Detected(p, "Log", string.format("Firing RemoteEvent too quickly (>Rate: %s/sec)", curRemoteRate))
+								warn(string.format("%s is firing Adonis's RemoteEvent too quickly (>Rate: %s/sec)", p.Name, curRemoteRate))
 							end
 						else
 							Anti.Detected(p, "Log", "Out of Sync (r10005)")
@@ -417,33 +444,17 @@ return function(Vargs, GetEnv)
 
 				for cmd, overrideMap in string.gmatch(msg, `([^{Settings.BatchKey}]+)({Settings.BatchKey}?[%d,>]*)`) do
 					cmd, overrideMap = Functions.Trim(cmd), Process.GetOverrideMap(overrideMap)
+					local returnArgs = table.pack(Process.Command(p, cmd, opts, false))
+					table.clear(overrideArgs)
 
-					local waiter = `{Settings.PlayerPrefix}wait`
-					if string.sub(string.lower(cmd), 1, #waiter) == waiter then
-						local num = tonumber(overrideArgs[1] or string.sub(cmd, #waiter + 1))
-
-						if overrideMap[1] then
-							table.clear(overrideArgs)
-							overrideArgs[overrideMap[1]] = num
-						end
-
-						if num then
-							task.wait(tonumber(num))
-						end
-					else
-						local returnArgs = table.pack(Process.Command(p, cmd, opts, false))
-						table.clear(overrideArgs)
-
-						for i, i2 in overrideMap do
-							overrideArgs[i2] = returnArgs[i + 1]
-						end
-
-						opts.OverrideArgs = overrideArgs
+					for i, i2 in overrideMap do
+						overrideArgs[i2] = returnArgs[i + 1]
 					end
+
+					opts.OverrideArgs = overrideArgs
 				end
 			else
-				local pData = opts.PlayerData or (p and Core.GetPlayer(p))
-				msg = (pData and Admin.AliasFormat(pData.Aliases, msg)) or msg
+				msg = Admin.AliasFormat(Admin.GetAliases(p), msg) or msg
 
 				if string.match(msg, Settings.BatchKey) then
 					return Process.Command(p, msg, opts, false)
@@ -513,7 +524,7 @@ return function(Vargs, GetEnv)
 					-- more checks
 					for i, argname in ipairs(cmdArgs) do
 						if string.find(argname, "player") ~= nil or string.find(argname, "plr") ~= nil then
-							local playersamount = #(service.GetPlayers(p, args[i]));
+							local playersamount = #(service.GetPlayers(p, args[i], {UseFakePlayer = true}));
 							if playersamount > 1 then
 								if Remote.GetGui(p, "YesNoPrompt", {
 									Question = string.format("Are you sure you want to proceed? (%s selected %s possible players)", msg, playersamount);
@@ -563,7 +574,9 @@ return function(Vargs, GetEnv)
 								Remote.MakeGui(p, "Output", {
 									Message = cmdError,
 								})
-								warn(`Encountered an error while running a command: {msg}\n{cmdError}\n{debug.traceback()}`)
+								if Core.DebugMode == true then
+									warn(`Encountered an error while running a command: {msg}\n{cmdError}\n{debug.traceback()}`)
+								end
 							end
 						elseif cmdError ~= nil and cmdError ~= true and not isSystem then
 							Remote.MakeGui(p, "Output", {
@@ -600,67 +613,6 @@ return function(Vargs, GetEnv)
 						Remote.Send(v, "handler", "ChatHandler", data.Player, data.Message, "Cross")
 					end
 				end
-			end
-		end;
-
-		CustomChat = function(p, a, b, canCross)
-			local didPassRate, didThrottle, canThrottle, curRate, maxRate = RateLimit(p, "CustomChat")
-
-			if didPassRate and not Admin.IsMuted(p) then
-				if type(a) == "string" then
-					a = string.sub(a, 1, Process.MsgStringLimit)
-				end
-
-				if b == "Cross" then
-					if canCross and Admin.CheckAdmin(p) then
-						Core.CrossServer("ServerChat", {Player = p.Name, Message = a})
-						--Core.SetData("CrossServerChat",{Player = p.Name, Message = a})
-					end
-				else
-					local target = `{Settings.SpecialPrefix}all`
-					if not b then
-						b = "Global"
-					end
-					if not service.Players:FindFirstChild(p.Name) then
-						b="Nil"
-					end
-					if string.sub(a,1,1)=="@" then
-						b="Private"
-						target,a=string.match(a,"@(.%S+) (.+)")
-						Remote.Send(p,"Function","SendToChat",p,a,b)
-					elseif string.sub(a,1,1)=="#" then
-						if string.sub(a,1,7)=="#ignore" then
-							target=string.sub(a,9)
-							b="Ignore"
-						end
-						if string.sub(a,1,9)=="#unignore" then
-							target=string.sub(a,11)
-							b="UnIgnore"
-						end
-					end
-
-					for _, v in service.GetPlayers(p, target, {
-						DontError = true;
-						})
-					do
-						if
-							p.Name == v.Name and b ~= "Private" and b ~= "Ignore" and b ~= "UnIgnore"
-							or b == "Global"
-							or b == "Team" and p.TeamColor == v.TeamColor
-							or b == "Local" and p:DistanceFromCharacter(v.Character.Head.Position) < 80
-							or b == "Admins" and Admin.CheckAdmin(p)
-							or b == "Private" and v.Name ~= p.Name
-							or b == "Nil"
-						then
-							Remote.Send(v, "Handler", "ChatHandler", p, service.Filter(a, p, v), b)
-						end
-					end
-				end
-
-				service.Events.CustomChat:Fire(p,a,b)
-			elseif not didPassRate and RateLimit(p, "RateLog") then
-				Anti.Detected(p, "Log", string.format("CustomChatting too quickly (>Rate: %s/sec)", curRate))
-				warn(string.format("%s is CustomChatting too quickly (>Rate: %s/sec)", p.Name, curRate))
 			end
 		end;
 
@@ -816,6 +768,7 @@ return function(Vargs, GetEnv)
 							if success and res == false then
 								p:Kick(`::Adonis:: {message or Settings.CustomJoinFilterKickMessage or "You are not allowed to join this experience"}`)
 								Logs.AddLog(server.Logs.Script, `{tostring(p)} failed the join filter {filter}`)
+								Removed = true
 								break
 							elseif not success then
 								Logs.AddLog(server.Logs.Errors, `{filter} failed for {res}`)
@@ -936,6 +889,10 @@ return function(Vargs, GetEnv)
 			end
 
 			Variables.TrackingTable[p.Name] = nil
+			if Variables.ReturnPoints[p] then
+				Variables.ReturnPoints[p] = nil
+			end
+
 			for otherPlrName, trackTargets in Variables.TrackingTable do
 				if trackTargets[p] then
 					trackTargets[p] = nil
@@ -978,7 +935,11 @@ return function(Vargs, GetEnv)
 			Remote.Send(p, "Function", "KeyBindListener", PlayerData.Keybinds or {})
 
 			-- // Send server variables to client
-			Remote.Send(p, "SetVariables", { TopBarShift = Settings.TopBarShift, NightlyMode = server.Data.NightlyMode or server.Data.ModuleID == 8612978896 })
+			Remote.Send(p, "SetVariables", {
+				TopBarShift = Settings.TopBarShift,
+				NightlyMode = server.Data.NightlyMode or server.Data.ModuleID == 8612978896,
+				G_Access_Key = Remote._globalAccessHash
+			})
 
 			--// Load some playerdata stuff
 			if type(PlayerData.Client) == "table" then
@@ -1008,9 +969,9 @@ return function(Vargs, GetEnv)
 						Enabled = (Settings.AntiAntiIdle ~= false or Settings.AntiClientIdle ~= false)
 					})
 
-					if Settings.ExploitGuiDetection and Settings.AllowClientAntiExploit then
-						Remote.Send(p, "LaunchAnti", "AntiCoreGui")
-					end
+					--if Settings.ExploitGuiDetection and Settings.AllowClientAntiExploit then
+					--	Remote.Send(p, "LaunchAnti", "AntiCoreGui")
+					--end
 				end
 
 				if Settings.AntiBuildingTools and Settings.AllowClientAntiExploit then
@@ -1022,7 +983,6 @@ return function(Vargs, GetEnv)
 			if Remote.Clients[key] then
 				Remote.Clients[key].FinishedLoading = true
 				if p.Character and p.Character.Parent == workspace then
-					--service.Threads.TimeoutRunTask(`{p.Name};CharacterAdded`,Process.CharacterAdded,60,p)
 					local ran, err = TrackTask(`{p.Name} CharacterAdded`, Process.CharacterAdded, false, p, p.Character, {FinishedLoading = true})
 					if not ran then
 						logError(err)
@@ -1039,47 +999,33 @@ return function(Vargs, GetEnv)
 				end
 
 				if level > 0 then
-					local oldVer = (level > 300) and Core.GetData("VersionNumber")
-					local newVer = (level > 300) and tonumber(string.match(server.Changelog[1], "Version: (.*)"))
-
 					if Settings.Notification then
-
 						task.wait(1)
 						Functions.Notification("Welcome.", `Your rank is {rank} ({level}). Click here for commands.`, {p}, 15, "MatIcon://Verified user", Core.Bytecode(`client.Remote.Send("ProcessCommand","{Settings.Prefix}cmds")`))
 
-						if oldVer and newVer and newVer > oldVer then
-							task.delay(1, Functions.Notification, "Updated!", "Click to view the changelog.", {p}, 10, "MatIcon://System upgrade", Core.Bytecode(`client.Remote.Send("ProcessCommand","{Settings.Prefix}changelog")`))
-						end
+						if #server.Messages > 0 then
+							for _, message in server.Messages do
+								local isString = type(message) == "string"
 
-						if level > 300 and Core.DebugMode == true then
-							task.delay(1, Functions.Notification, "Debug Mode Enabled", "Adonis is currently running in Debug Mode.", {p}, 10, "MatIcon://Bug report", Core.Bytecode(`client.Remote.Send("ProcessCommand","{Settings.Prefix}debugcmds")`))
-						end
-
-						if level > 300 and Settings.DataStoreKey == Defaults.Settings.DataStoreKey and Core.DebugMode == false then
-							task.delay(1, Functions.Notification, "Warning!", "Using default datastore key!", {p}, 15, "MatIcon://Description", Core.Bytecode([[
-									local window = client.UI.Make("Window", {
-										Title = "How to change the DataStore key";
-										Size = {700,300};
-										Icon = "rbxassetid://7510994359";
-									})
-
-									window:Add("ImageLabel", {
-										Image = "rbxassetid://1059543904";
-									})
-
-									window:Ready()
-							]]))
-						end
-
-						if level >= 300 and #Settings.Messages > 0 then
-							for _, Message in Settings.Messages do
-								task.delay(1, Functions.Notification, "Message", tostring(Message), {p}, math.round((#Message/19)+2.5))
+								if level >= (not isString and message.Level or 300) then
+									task.delay(
+										1,
+										Functions.Notification,
+										not isString and message.Title or "Message",
+										isString and message or not isString and message.Message or "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+										{p},
+										isString and math.round((#message/19)+2.5) or not isString and message.Time or 10,
+										not isString and message.Icon,
+										not isString and message.onClick
+									)
+								end
 							end
 						end
 					end
 
-					if newVer then
-						Core.SetData("VersionNumber", newVer)
+					if Process.SaveDatastoreVersionDebounce then
+						Process.SaveDatastoreVersionDebounce = false
+						Core.SetData("VersionNumber", server.Version)
 					end
 				end
 
@@ -1144,7 +1090,10 @@ return function(Vargs, GetEnv)
 				--// Wait for UI stuff to finish
 				task.wait(1)
 				if not p:FindFirstChildWhichIsA("PlayerGui") then
-					p:WaitForChild("PlayerGui", 9e9)
+					p:WaitForChild("PlayerGui", 60)
+					if not p.Parent then
+						return
+					end
 				end
 				Remote.Get(p,"UIKeepAlive")
 
@@ -1167,26 +1116,11 @@ return function(Vargs, GetEnv)
 					Remote.MakeGui(p, "HelpButton")
 				end
 
-				--if Settings.CustomChat then
-				--	MakeGui(p, "Chat")
-				--end
-
-				--if Settings.PlayerList then
-				--	MakeGui(p, "PlayerList")
-				--end
-
 				if level < 1 then
 					if Settings.AntiNoclip and Settings.AllowClientAntiExploit then
 						Remote.Send(p, "LaunchAnti", "HumanoidState")
 					end
 				end
-
-				--// Check muted
-				--[=[for ind,admin in Settings.Muted do
-					if Admin.DoCheck(p, admin) then
-						Remote.LoadCode(p, [[service.StarterGui:SetCoreGuiEnabled("Chat",false) client.Variables.ChatEnabled = false client.Variables.Muted = true]])
-					end
-				end--]=]
 
 				task.spawn(Functions.Donor, p)
 
@@ -1213,52 +1147,67 @@ return function(Vargs, GetEnv)
 						end
 					end
 				end
+
+				local Hum = char:FindFirstChildOfClass("Humanoid")
+				if not Hum then return end
+				local Health = Variables.Starter.Health[tostring(p.UserId)]
+				if Health then
+					Hum.MaxHealth = Health
+					Hum.Health = Hum.MaxHealth
+				end
+				local Speed = Variables.Starter.Speed[tostring(p.UserId)]
+				if Speed then
+					Hum.WalkSpeed = Speed
+				end
 			end
 		end;
 
 		NetworkAdded = function(cli)
-			task.wait(0.25)
+			if cli.ClassName == "ServerReplicator" then
+				task.wait(0.25)
 
-			local p = cli:GetPlayer()
+				local p = cli:GetPlayer()
+				if p then
+					Core.Connections[cli] = p
 
-			if p then
-				Core.Connections[cli] = p
+					AddLog("Script", {
+						Text = `{p.Name} connected`;
+						Desc = `{p.Name} successfully established a RakPeer network connection with the server (RakNet)`;
+						Player = p;
+					})
+				else
+					AddLog("Script", {
+						Text = "<UNKNOWN> connected";
+						Desc = "An unknown user without a player instance successfully established a RakPeer network connection with the server (RakNet)";
+					})
+				end
 
-				AddLog("Script", {
-					Text = `{p.Name} connected`;
-					Desc = `{p.Name} successfully established a connection with the server`;
-					Player = p;
-				})
-			else
-				AddLog("Script", {
-					Text = "<UNKNOWN> connected";
-					Desc = "An unknown user successfully established a connection with the server";
-				})
+				service.Events.NetworkAdded:Fire(cli)
 			end
-
-			service.Events.NetworkAdded:Fire(cli)
 		end;
 
 		NetworkRemoved = function(cli)
-			local p = cli:GetPlayer() or Core.Connections[cli]
+			if cli.ClassName == "ServerReplicator" then
+				local p = cli:GetPlayer() or Core.Connections[cli]
 
-			Core.Connections[cli] = nil
+				Core.Connections[cli] = nil
 
-			if p then
-				Anti.KickedPlayers[p] = nil
-				AddLog("Script", {
-					Text = `{p.Name} disconnected`;
-					Desc = `{p.Name} disconnected from the server`;
-					Player = p;
-				})
-			else
-				AddLog("Script", {
-					Text = "<UNKNOWN> disconnected";
-					Desc = "An unknown user disconnected from the server";
-				})
+				if p then
+					Anti.KickedPlayers[p] = nil
+					AddLog("Script", {
+						Text = `{p.Name} disconnected`;
+						Desc = `{p.Name} disconnected from the server (RakNet)`;
+						Player = p;
+					})
+				else
+					AddLog("Script", {
+						Text = "<UNKNOWN> disconnected";
+						Desc = "An unknown user without a player instance disconnected from the server (RakNet)";
+					})
+				end
+
+				service.Events.NetworkRemoved:Fire(cli)
 			end
-
-			service.Events.NetworkRemoved:Fire(cli)
 		end;
 
 		--[[

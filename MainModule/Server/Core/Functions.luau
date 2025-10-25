@@ -20,6 +20,7 @@ return function(Vargs, GetEnv)
 		Variables = server.Variables;
 		Settings = server.Settings;
 		logError = server.logError;
+		Functions.NuclearExplode = select(2, xpcall(require, warn, server.Dependencies.FastNuke));
 
 		Functions.Init = nil
 		Logs:AddLog("Script", "Functions Module Initialized")
@@ -346,7 +347,7 @@ return function(Vargs, GetEnv)
 			["#number"] = {
 				Match = "#";
 				Function = function(msg, plr, ...)
-					local matched = string.match(msg, "%#(.*)")
+					local matched = string.match(msg, "#(.*)")
 					if matched and tonumber(matched) then
 						local num = tonumber(matched)
 						if not num then
@@ -354,7 +355,7 @@ return function(Vargs, GetEnv)
 							return;
 						end
 
-						for i = 1,num do
+						for i = 1, math.min(num, #service.Players:GetPlayers()) do
 							Functions.PlayerFinders.random.Function(msg, plr, ...)
 						end
 					end
@@ -387,19 +388,10 @@ return function(Vargs, GetEnv)
 			};
 		};
 
-		CatchError = function(func, ...)
-			local ret = {pcall(func, ...)}
-
-			if not ret[1] then
-				logError(ret[2] or "Unknown error occurred")
-			else
-				return unpack(ret, 2)
-			end
-		end;
-
 		GetFakePlayer = function(options)
 			local fakePlayer = service.Wrap(service.New("Folder", {
 				Name = options.Name or "Fake_Player";
+				Archivable = false;
 			}))
 
 			local data = {
@@ -409,12 +401,12 @@ return function(Vargs, GetEnv)
 				UserId = 0;
 				AccountAge = 0;
 				MembershipType = Enum.MembershipType.None;
-				CharacterAppearanceId = if options.UserId then tostring(options.UserId) else "0";
+				CharacterAppearanceId = options.UserId or 0;
 				FollowUserId = 0;
 				GameplayPaused = false;
 				Parent = service.Players;
 				Character = service.New("Model", {Name = options.Name or "Fake_Player"});
-				Backpack = service.New("Folder", {Name = "FakeBackpack"});
+				Backpack = service.New("Backpack", {Name = "FakeBackpack"});
 				PlayerGui = service.New("Folder", {Name = "FakePlayerGui"});
 				PlayerScripts = service.New("Folder", {Name = "FakePlayerScripts"});
 				GetJoinData = function() return {} end;
@@ -422,15 +414,15 @@ return function(Vargs, GetEnv)
 				GetRankInGroup = function() return 0 end;
 				GetRoleInGroup = function() return "Guest" end;
 				IsFriendsWith = function() return false end;
-				Kick = function() fakePlayer:Destroy() fakePlayer:SetSpecial("Parent", nil) end;
-				IsA = function(_, className) return className == "Player" end;
+				Kick = function() fakePlayer:SetSpecial("Parent", nil) fakePlayer:Destroy() end;
+				IsA = function(_, className) return className == "Player" or className == "Instance" end;
 			}
 
-			for i, v in options do
-				data[i] = v
+			for k, v in options do
+				data[k] = v
 			end
 
-			if data.UserId ~= -1 then
+			if data.UserId > 0 then
 				local success, actualName = pcall(service.Players.GetNameFromUserIdAsync, service.Players, data.UserId)
 				if success then
 					data.Name = actualName
@@ -440,32 +432,23 @@ return function(Vargs, GetEnv)
 			data.userId = data.UserId
 			data.ToString = data.Name
 
-			for i, v in data do
-				fakePlayer:SetSpecial(i, v)
+			for k, v in data do
+				fakePlayer:SetSpecial(k, v)
 			end
 
 			return fakePlayer
 		end;
 
-		GetChatService = function(waitTime)
-			local isTextChat = service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService
-			local chatHandler = service.ServerScriptService:WaitForChild("ChatServiceRunner", waitTime or isTextChat and 0.2 or 145)
-			local chatMod = chatHandler and chatHandler:WaitForChild("ChatService", waitTime or isTextChat and 0.2 or 145)
-
-			if chatMod then
-				return require(chatMod)
-			elseif isTextChat then
-				return false
-			end
-			return nil
+		GetChatService = function()
+			return if service.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then false else nil
 		end;
 
 		ArgsToString = function(args)
-			local str = ""
+			local str = table.create(args.n or #args)
 			for i, arg in args do
-				str ..= `Arg{i}: {arg}; `
+				str[i] = `Arg{i}: {arg}; `
 			end
-			return string.sub(str, 1, -3)
+			return string.sub(table.concat(str), 1, -3)
 		end;
 
 		GetPlayers = function(plr, argument, options)
@@ -529,12 +512,12 @@ return function(Vargs, GetEnv)
 				end
 
 				local selectors = string.gmatch(argument, "([^,]+)")
-				
+
 				--// This is for player commands that take in service.GetPlayers() to make sure someone isnt passing in a message that is insanely long
 				local PlrLevel = if plr then Admin.GetLevel(plr) else 0
-				local AllowUnsafeSelectors = PlrLevel > 0 or options.AllowUnsafeSelectors 
+				local AllowUnsafeSelectors = PlrLevel > 0 or options.AllowUnsafeSelectors
 				local MaxSelectors = Variables.MaxSafeSelectors or 400 -- 400 seems like a good "max" that won't ever be reached
-				
+
 				local index = 0
 
 				for s in selectors do
@@ -561,7 +544,7 @@ return function(Vargs, GetEnv)
 								options.IsKicking,
 								options.IsServer,
 								options.DontError,
-								not options.NoFakePlayer,
+								options.UseFakePlayer,
 								options.AllowUnknownUsers
 							)
 						end
@@ -599,7 +582,7 @@ return function(Vargs, GetEnv)
 							end
 
 							if plrCount == 0 then
-								if not options.NoFakePlayer then
+								if options.UseFakePlayer then
 									--// Attempt to retrieve non-ingame user
 									local UserId
 									if Functions.GetUserIdFromNameAsync(s) then
@@ -622,7 +605,7 @@ return function(Vargs, GetEnv)
 								if plrCount == 0 and not options.DontError then
 									Remote.MakeGui(plr, "Output", {
 										Title = "Missing player";
-										Message = if not options.NoFakePlayer then `No user named '{s}' exists`
+										Message = if options.UseFakePlayer then `No user named '{s}' exists`
 											else `No players matching '{s}' were found!`;
 									})
 								end
@@ -766,7 +749,7 @@ return function(Vargs, GetEnv)
 			local floor = math.floor
 			local char = string.char
 			local sub = string.sub
-																											
+
 			local nOut = 0
 			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 			local strLen = #str
@@ -836,7 +819,7 @@ return function(Vargs, GetEnv)
 			local floor = math.floor
 			local char = string.char
 			local sub = string.sub
-			
+
 			local nOut = 0
 			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 			local strLen = #str
@@ -964,12 +947,13 @@ return function(Vargs, GetEnv)
 						Scroll = scroll;
 						Time = duration;
 						Image = image;
+						UserId = sender and sender.UserId or nil;
 					})
 				end)
 			end
 		end;
 
-		Notify = function(title, message, players, duration)
+		Notify = function(title, message, players, duration, author)
 			duration = duration or (#tostring(message) / 19) + 2.5
 
 			for _, v in players do
@@ -979,6 +963,7 @@ return function(Vargs, GetEnv)
 						Title = title;
 						Message = message;
 						Time = duration;
+						UserId = author and author.UserId or nil;
 					})
 				end)
 			end
@@ -986,7 +971,7 @@ return function(Vargs, GetEnv)
 
 		Notification = function(title, message, players, duration, icon, onClick)
 			icon = icon and string.match(icon, "MatIcon://(.+)") or icon
-			
+
 			for _, v in players do
 				Remote.MakeGui(v, "Notification", {
 					Title = title;
@@ -1009,19 +994,31 @@ return function(Vargs, GetEnv)
 		end;
 
 		SetLighting = function(prop, value)
-			if service.Lighting[prop] ~= nil then
-				service.Lighting[prop] = value
-				Variables.LightingSettings[prop] = value
-				for _, p in service.GetPlayers() do
-					Remote.SetLighting(p, prop, value)
+			if service.CheckProperty(service.Lighting, prop) then
+				local success = pcall(function()
+					service.Lighting[prop] = value
+				end)
+				if success then
+					Variables.LightingSettings[prop] = value
+					for _, p in service.GetPlayers() do
+						Remote.SetLighting(p, prop, value)
+					end
 				end
 			end
 		end;
 
 		SetAtmosphere = function(prop,value)
-			if service:FindFirstChildWhichIsA("Atmosphere")[prop] ~= nil then
-				service:FindFirstChildWhichIsA("Atmosphere")[prop] = value
-				Variables.AtmosphereSettings[prop] = value
+			local atmosphere = service.Lighting:FindFirstChildWhichIsA("Atmosphere")
+
+			if atmosphere then
+				if value == nil and atmosphere[prop] and typeof(atmosphere[prop]) ~= "Instance" then
+					atmosphere:Destroy()
+					table.clear(Variables.AtmosphereSettings)
+				else
+					atmosphere[prop] = value
+					Variables.AtmosphereSettings[prop] = value
+				end
+
 				for _, p in service.GetPlayers() do
 					Remote.SetAtmosphere(p, prop, value)
 				end
@@ -1040,6 +1037,10 @@ return function(Vargs, GetEnv)
 					Variables.LocalEffects[i] = nil
 				end
 			end
+		end;
+
+		LogAdminAction = function(plr, action, targetPlayerName, additionalDetails)
+			-- kept function here for potential future reimplementation
 		end;
 
 		NewParticle = function(target, particleType, props)
@@ -1077,14 +1078,16 @@ return function(Vargs, GetEnv)
 			end
 		end;
 
-		Cape = function(player,isdon,material,color,decal,reflect)
+		Cape = function(player, isdon, material, color, decal, reflect)
 			material = material or "Neon"
 			if not Functions.GetEnumValue(Enum.Material, material) then
 				error("Invalid material value")
 			end
+			--material = assert(Enum.Material:FromName(material or "Neon"), "Invalid material value")
 
 			Functions.UnCape(player)
 			local torso = player.Character:FindFirstChild("HumanoidRootPart")
+
 			if torso then
 				if type(color) == "table" then
 					color = Color3.new(unpack(color))
@@ -1148,10 +1151,9 @@ return function(Vargs, GetEnv)
 
 		ApplyBodyPart = function(character, model)
 			-- NOTE: Use HumanoidDescriptions to apply body parts where possible, unless applying custom parts
-
 			local humanoid = character:FindFirstChildOfClass("Humanoid")
 			if humanoid then
-				local rigType = humanoid.RigType == Enum.HumanoidRigType.R6 and "R6" or "R15"
+				local rigType = humanoid.RigType.Name
 				local part = model:FindFirstChild(rigType)
 
 				if not part and rigType == "R15" then
@@ -1172,6 +1174,7 @@ return function(Vargs, GetEnv)
 					elseif rigType == "R15" then
 						for _,v in part:GetChildren() do
 							local value = Functions.GetEnumValue(Enum.BodyPartR15, v.Name)
+							--local value = Enum.BodyPartR15:FromName(v.Name)
 							if value then
 								humanoid:ReplaceBodyPartR15(value, v:Clone())
 							end
@@ -1205,6 +1208,7 @@ return function(Vargs, GetEnv)
 
 				new.Name = player.Name
 				new.Archivable = false
+				new.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 				new:PivotTo(pos * CFrame.Angles(0, math.rad((360/num)*i+90), 0) * CFrame.new((num*0.2)+5, 0, 0) * CFrame.Angles(0, math.pi / 2, 0))
 
 				hum.WalkSpeed = speed
@@ -1226,7 +1230,7 @@ return function(Vargs, GetEnv)
 					task.wait()
 				end
 
-				event:Fire("SetSetting", {
+				task.defer(event.Fire, event, "SetSetting", {
 					Creator = player;
 					Friendly = friendly;
 					TeamColor = player.TeamColor;
@@ -1236,15 +1240,17 @@ return function(Vargs, GetEnv)
 					Damage = damage;
 					Health = health;
 					WalkSpeed = speed;
-					SpecialKey = math.random();
+					SpecialKey = service.HttpService:GenerateGUID(false);
 				})
 
 				if walk then
-					event:Fire("Init")
+					task.defer(task.defer, event.Fire, event, "Init")
 				end
 
 				table.insert(Variables.Objects, new)
 			end
+
+			clone:Destroy()
 		end,
 
 		GetJoints = function(character)
@@ -1321,7 +1327,7 @@ return function(Vargs, GetEnv)
 				end
 
 				if not buf then
-					local result = string.gsub(string.gsub(string.gsub(arg, spat, ""), epat, ""), escquotpat, "%2")	
+					local result = string.gsub(string.gsub(string.gsub(arg, spat, ""), epat, ""), escquotpat, "%2")
 					str ..= result .. key
 					table.insert(tab,result)
 				end
@@ -1394,7 +1400,11 @@ return function(Vargs, GetEnv)
 			return AllGrabbedPlayers
 		end;
 
-		GetUserIdFromNameAsync = function(name)
+		GetUserIdFromNameAsync = function(name: string | Player)
+			if type(name) == "userdata" and name:IsA("Player") then
+				return name.UserId
+			end
+
 			local cache = Admin.UserIdCache[name]
 			if not cache then
 				local success, UserId = pcall(service.Players.GetUserIdFromNameAsync, service.Players, name)
@@ -1408,7 +1418,11 @@ return function(Vargs, GetEnv)
 			return cache
 		end;
 
-		GetNameFromUserIdAsync = function(id)
+		GetNameFromUserIdAsync = function(id: number | Player)
+			if type(id) == "userdata" and id:IsA("Player") then
+				return id.Name
+			end
+
 			local cache = Admin.UsernameCache[id]
 			if not cache then
 				local success, Username = pcall(service.Players.GetNameFromUserIdAsync, service.Players, id)
@@ -1553,7 +1567,7 @@ return function(Vargs, GetEnv)
 			local Humanoid: Humanoid = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
 
 			local HumanoidDescription = Humanoid:GetAppliedDescription() or service.Players:GetHumanoidDescriptionFromUserId(plr.UserId)
-			local newCharacterModel: Model = service.Players:CreateHumanoidModelFromDescription(HumanoidDescription, rigType, Enum.AssetTypeVerification.Always)
+			local newCharacterModel: any = service.Players:CreateHumanoidModelFromDescription(HumanoidDescription, rigType, Enum.AssetTypeVerification.Always)
 			local Animate: BaseScript = newCharacterModel.Animate
 
 			newCharacterModel.Humanoid.DisplayName = Humanoid.DisplayName
@@ -1600,7 +1614,7 @@ return function(Vargs, GetEnv)
 			})
 		end;
 
-		ParseColor3 = function(str: string?)
+		ParseColor3 = function(str: string)
 			if not str then return nil end
 			if str:lower() == "random" then
 				return Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
@@ -1612,17 +1626,19 @@ return function(Vargs, GetEnv)
 			end
 
 			if #color == 3 then
-				color = Color3.fromRGB(color[1], color[2], color[3])
+				return Color3.fromRGB(color[1], color[2], color[3])
 			else
-				local brickColor = BrickColor.new(str)
+				local brickColor = BrickColor.new(str::any);
 				if str == tostring(brickColor) then
-					color = brickColor.Color
+					return brickColor.Color
 				else
 					return
 				end
 			end
+		end;
 
-			return color
+		SHA256 = function(...)
+			return require(server.Shared.HashLib).SHA256(...)
 		end;
 
 		ParseBrickColor = function(str: string, allowNil: boolean?)
@@ -1633,7 +1649,7 @@ return function(Vargs, GetEnv)
 				return BrickColor.random()
 			end
 
-			local brickColor = BrickColor.new(str)
+			local brickColor = BrickColor.new(str::any)
 			if str == tostring(brickColor) then
 				return brickColor
 			else
@@ -1645,9 +1661,11 @@ return function(Vargs, GetEnv)
 			end
 			return if allowNil then nil else BrickColor.random()
 		end;
-	};
 
-	task.spawn(xpcall, function()
-		server.Functions.NuclearExplode = require(server.Dependencies.FastNuke);
-	end, warn)
+		GetMainPrefix = function()
+			if type(Settings.Prefix) == "table" then return Settings.Prefix[1] else return Settings.Prefix end
+		end;
+	}
+
+
 end

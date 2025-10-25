@@ -36,7 +36,7 @@ local descs = {};			--// Contains settings descriptions
 
 		Numbers do not use quotes. setting = 56
 
-		This green block of text you are reading is called a comment. It's like a message
+		This block of text you are reading is called a comment. It's like a message
 		from the programmer to anyone who reads their stuff. Anything in a comment will
 		not be seen by Luau when the script is run.
 
@@ -61,8 +61,9 @@ local descs = {};			--// Contains settings descriptions
 		If I wanted to make it so rank 134 in group 1029934 and BobJenkins123 had mod admin I would do
 		settings.Moderators = {"Group:1029943:134", "BobJenkins123"}
 
-
-		I was going to change the admin rank stuff but I figured it would confuse people too much, so I left it as mods/admins/HeadAdmins ;p
+		!NOTE! When adding a group to a table, you may be tempted to replace the word Group with the name of your group – DON'T.
+		The group name is IRRELEVANT! If one's group was named 2Drool4School and it had the ID 2847031, the correct form is {"Group:2847031"}
+		and not {"2Drool4School:2847031"}
 
 
 		--// Admins
@@ -120,7 +121,7 @@ local descs = {};			--// Contains settings descriptions
 			Lists:
 				Moderators			- Card Format: Same as settings.Moderators
 				Admins				- Card Format: Same as settings.Admins
-				HeadAdmins				- Card Format: Same as settings.HeadAdmins
+				HeadAdmins			- Card Format: Same as settings.HeadAdmins
 				Creators			- Card Format: Same as settings.Creators
 				Banlist				- Card Format: Same as settings.Banned
 				Mutelist			- Card Format: Same as settings.Muted
@@ -140,14 +141,13 @@ settings.HideScript = true						 -- When the game starts the Adonis_Loader model
 settings.DataStore = "Adonis_1"					 -- DataStore the script will use for saving data; Changing this will lose any saved data
 settings.DataStoreKey = "CHANGE_THIS"			 -- CHANGE THIS TO ANYTHING RANDOM! Key used to encrypt all datastore entries; Changing this will lose any saved data
 settings.DataStoreEnabled = true				 -- Disable if you don't want to load settings and admins from the datastore; PlayerData will still save
-settings.LocalDatastore = false					 -- If this is turned on, a mock DataStore will forcibly be used instead and shall never save across servers
+settings.LocalDatastore = false				 -- If this is turned on, a mock DataStore will forcibly be used instead and shall never save across servers
 
-settings.Storage = game:GetService("ServerStorage")  -- Where things like tools are stored
-settings.RecursiveTools = false						 -- Whether tools that are included in sub-containers within settings.Storage will be available via the :give command (useful if your tools are organized into multiple folders)
+settings.Storage = game:GetService("ServerStorage") -- Where things like tools are stored
+settings.RecursiveTools = false					 -- Whether tools that are included in sub-containers within settings.Storage will be available via the :give command (useful if your tools are organized into multiple folders)
 
 settings.Theme = "Default"				-- UI theme;
 settings.MobileTheme = "Mobilius"		-- Theme to use on mobile devices; Some UI elements are disabled
-
 																																																																																				--[[
 	**HOW TO ADD ADMINISTRATORS:**
 		Below are the administrator permission levels/ranks (Mods, Admins, HeadAdmins, Creators, StuffYouAdd, etc)
@@ -210,6 +210,17 @@ settings.Aliases = {
 	[":examplealias <player> <fireColor>"] = ":ff <player> | :fling <player> | :fire <player> <fireColor>" --// Order arguments appear in alias string determines their required order in the command message when ran later
 };
 
+--// Use the below table to define pre-set cameras
+settings.Cameras = {
+--[[
+	"Camera Name" would be the name of your camera
+	{
+		Name = "Camera Name";
+		Position = Vector3.new(0, 0, 0)
+	}
+]]
+}
+
 settings.Banned = {}		-- List of people banned from the game 		  Format: {"Username"; "Username:UserId"; UserId; "Group:GroupId:GroupRank"; "Group:GroupId"; "Item:ItemID"; "GamePass:GamePassID";}
 settings.Muted = {}			-- List of people muted (cannot send chat messages)				 		  Format: {"Username"; "Username:UserId"; UserId; "Group:GroupId:GroupRank"; "Group:GroupId"; "Item:ItemID"; "GamePass:GamePassID";}
 settings.Blacklist = {}		-- List of people banned from running commands 	  Format: {"Username"; "Username:UserId"; UserId; "Group:GroupId:GroupRank"; "Group:GroupId"; "Item:ItemID"; "GamePass:GamePassID";}
@@ -228,7 +239,7 @@ settings.SaveAdmins = true		  -- If true anyone you :admin or :headadmin in-game
 settings.LoadAdminsFromDS = true  -- If false, any admins saved in your DataStores will not load
 settings.WhitelistEnabled = false -- If true enables the whitelist/server lock; Only lets admins & whitelisted users join
 
-settings.Prefix = ":"				-- The : in :kill me
+settings.Prefix = {":", ";"}		-- A list of prefixes for commands, the : in :kill me
 settings.PlayerPrefix = "!"			-- The ! in !donate; Mainly used for commands that any player can run; Do not make it the same as settings.Prefix
 settings.SpecialPrefix = ""			-- Used for things like "all", "me" and "others" (If changed to ! you would do :kill !me)
 settings.SplitKey = " "				-- The space in :kill me (eg if you change it to / :kill me would be :kill/me)
@@ -273,18 +284,18 @@ settings.CommandCooldowns = {
 ]]
 }
 
-settings.FunCommands = true				-- Are fun commands enabled?
-settings.PlayerCommands = true			-- Are player-level utility commands enabled?
-settings.AgeRestrictedCommands = true	-- Are age-locked commands enabled?
-settings.WarnDangerousCommand = false	-- Do dangerous commands ask for confirmation?
-settings.CommandFeedback = false		-- Should players be notified when commands with non-obvious effects are run on them?
-settings.CrossServerCommands = true		-- Are commands which affect more than one server enabled?
-settings.ChatCommands = true			-- If false you will not be able to run commands via the chat; Instead, you MUST use the console or you will be unable to run commands
-settings.CreatorPowers = true			-- Gives me creator-level admin; This is strictly used for debugging; I can't debug without full access to the script
-settings.CodeExecution = true			-- Enables the use of code execution in Adonis; Scripting related (such as :s) and a few other commands require this
-settings.SilentCommandDenials = false	-- If true, there will be no differences between the error messages shown when a user enters an invalid command and when they have insufficient permissions for the command
-settings.OverrideChatCallbacks = true	-- If the TextChatService ShouldDeliverCallbacks of all channels are overridden by Adonis on load. Required for slowmode. Mutes use a CanSend method to mute when this is set to false.
-settings.ChatCreateRobloxCommands = true	-- Whether "/" commands for Roblox should get created in new Chat
+settings.FunCommands = true					-- Are fun commands enabled?
+settings.PlayerCommands = true				-- Are player-level utility commands enabled?
+settings.AgeRestrictedCommands = true		-- Are age-locked commands enabled?
+settings.WarnDangerousCommand = false		-- Do dangerous commands ask for confirmation?
+settings.CommandFeedback = false			-- Should players be notified when commands with non-obvious effects are run on them?
+settings.CrossServerCommands = true			-- Are commands which affect more than one server enabled?
+settings.ChatCommands = true				-- If false you will not be able to run commands via the chat; Instead, you MUST use the console or you will be unable to run commands
+settings.CreatorPowers = true				-- Gives me creator-level admin; This is strictly used for debugging; I can't debug without full access to the script
+settings.CodeExecution = false				-- Enables the use of code execution in Adonis. Scripting related (such as :s) and a few other commands require this
+settings.SilentCommandDenials = false		-- If true, there will be no differences between the error messages shown when a user enters an invalid command and when they have insufficient permissions for the command
+settings.OverrideChatCallbacks = true		-- If the TextChatService ShouldDeliverCallbacks of all channels are overridden by Adonis on load. Required for slowmode. Mutes use a CanSend method to mute when this is set to false.
+settings.ChatCreateRobloxCommands = false	-- Whether "/" commands for Roblox should get created in new Chat
 
 settings.BanMessage = "Banned"				-- Message shown to banned users upon kick
 settings.LockMessage = "Not Whitelisted"	-- Message shown to people when they are kicked while the game is :slocked
@@ -297,12 +308,11 @@ settings.SongHint = true		           -- Display a hint with the current song nam
 settings.TopBarShift = false	           -- By default hints and notifications will appear from the top edge of the window. Set this to true if you don't want hints/notifications to appear in that region.
 settings.DefaultTheme = "Default"		   -- Theme to be used as a replacement for "Default". The new replacement theme can still use "Default" as its Base_Theme however any other theme that references "Default" as its redirects to this theme.
 settings.HiddenThemes = {}				   -- Hide themes from the theme selector tab inside the userpanel. Each theme name must be the specific name such as "Mobilius"
-settings.Messages = {}			           -- A list of notification messages to show HeadAdmins and above on join
+settings.Messages = {}			           -- A list of notifications shown on join. Messages can either be strings or tables. Messages are shown to HeadAdmins+ by default but tables can define a different minimum level via .Level
 settings.AutoClean = false		           -- Will auto clean workspace of things like hats and tools
 settings.AutoCleanDelay = 60	           -- Time between auto cleans
 settings.AutoBackup = false 	           -- Run :backupmap automatically when the server starts. To restore the map, run :restoremap
 settings.ReJail = false			           -- If true then when a player rejoins they'll go back into jail. Or if the moderator leaves everybody gets unjailed
-settings.DisableRejoinAtMaxPlayers = false -- If true, disables rejoin when max players is reached to avoid an exploit that allows more players than the max amount.
 
 settings.Console = true				-- Whether the command console is enabled
 settings.Console_AdminsOnly = false -- If true, only admins will be able to access the console
@@ -376,12 +386,10 @@ settings.AntiNoclip = false					-- (Default: false)	Attempts to detect noclippin
 settings.AntiRootJointDeletion = false		-- (Default: false)	Attempts to detect paranoid and kills the player if found.
 settings.AntiMultiTool = false 				-- (Default: false)	Prevents multitool and because of that many other exploits.
 settings.AntiGod = false 					-- (Default: false)	If a player does not respawn when they should have they get respawned.
--- settings.AntiHumanoidDeletion and settings.ProtectHats have been superseded by Workspace.RejectCharacterDeletions.
 
 settings.AntiSpeed = false 				-- (Default: false)	(Client-Sided) Attempts to detect speed exploits.
 settings.AntiBuildingTools = false		-- (Default: false)	(Client-Sided) Attempts to detect any HopperBin(s)/Building Tools added to the client.
 settings.AntiAntiIdle = false 			-- (Default: false)	(Client-Sided) Kick the player if they are using an anti-idle exploit. Highly useful for grinding/farming games.
-settings.ExploitGuiDetection = false 	-- (Default: false)	(Client-Sided) If any exploit GUIs are found in the CoreGui the exploiter gets kicked (If you use StarterGui:SetCore("SendNotification") with an image this will kick you).
 
 ---------------------
 -- END OF SETTINGS --
@@ -409,6 +417,7 @@ descs.Creators = [[ Anyone to be identified as a place owner; Format: {"Username
 
 descs.Permissions = [[ Command permissions; Format: {"Command:NewLevel";} ]]
 descs.Aliases = [[ Command aliases; Format: {[":alias <arg1> <arg2> ..."] = ":command <arg1> <arg2> ..."} ]]
+descs.Cameras = [[ Cameras; Format: {Name = "CamName", Position = Vector3.new(X, Y, Z)} ]]
 
 descs.Commands = [[ Custom commands ]]
 descs.Banned = [[ List of people banned from the game; Format: {"Username"; "Username:UserId"; UserId; "Group:GroupId:GroupRank"; "Group:GroupId"; "Item:ItemID";} ]]
@@ -432,7 +441,7 @@ descs.WhitelistEnabled = [[ If true enables the whitelist/server lock; Only lets
 descs.Prefix = [[ The : in :kill me ]]
 descs.PlayerPrefix = [[ The ! in !donate; Mainly used for commands that any player can run ]]
 descs.SpecialPrefix = [[ Used for things like "all", "me" and "others" (If changed to ! you would do :kill !me) ]]
-descs.SplitKey = [[ The space in :kill me (eg if you change it to / :kill me would be :kill/me) ]]
+descs.SplitKey = [[ The space in ;kill me (eg if you change it to / :kill me would be :kill/me) ]]
 descs.BatchKey = [[ :kill me | :ff bob | :explode scel ]]
 descs.ConsoleKeyCode = [[ Keybind to open the console ]]
 
@@ -459,7 +468,6 @@ descs.CrossServerCommands = [[ Are commands which affect more than one server en
 descs.ChatCommands = [[ If false you will not be able to run commands via the chat; Instead, you MUST use the console or you will be unable to run commands ]]
 descs.SilentCommandDenials = [[ If true, there will be no differences between the error messages shown when a user enters an invalid command and when they have insufficient permissions for the command ]]
 descs.OverrideChatCallbacks = [[ If the TextChatService ShouldDeliverCallbacks of all channels are overridden by Adonis on load. Required for muting ]]
-descs.ChatCreateRobloxCommands = [[ Whether "/" commands for Roblox should get created in new Chat ]]
 
 descs.BanMessage = [[ Message shown to banned users ]]
 descs.LockMessage = [[ Message shown to people when they are kicked while the game is :slocked ]]
@@ -474,15 +482,13 @@ descs.SongHint = [[ Display a hint with the current song name and ID when a song
 descs.TopBarShift = [[ By default hints and notifs will appear from the top edge of the window. Set this to true if you don't want hints/notifications to appear in that region. ]]
 descs.DefaultTheme = [[ Theme to be used as a replacement for "Default". The new replacement theme can still use "Default" as its Base_Theme however any other theme that references "Default" as its redirects to this theme. ]]
 descs.ReJail = [[ If true then when a player rejoins they'll go back into jail. Or if the moderator leaves everybody gets unjailed ]]
-descs.DisableRejoinAtMaxPlayers = [[ If true, disables rejoin when max players is reached to avoid an exploit that allows more players than the max amount. ]]
 
-descs.Messages = [[ A list of notification messages to show HeadAdmins and above on join ]]
+descs.Messages = [[ A list of notifications shown on join. Messages can either be strings or tables. Messages are shown to HeadAdmins+ by default but tables can define a different minimum level via .Level ]]
 
 descs.AutoClean = [[ Will auto clean workspace of things like hats and tools ]]
 descs.AutoBackup = [[ (not recommended) Run a map backup command when the server starts, this is mostly useless as clients cannot modify the server. To restore the map run :restoremap ]]
 descs.AutoCleanDelay = [[ Time between auto cleans ]]
 
-descs.CustomChat = [[ Custom chat ]]
 descs.PlayerList = [[ Custom playerlist ]]
 
 descs.Console = [[ Command console ]]
@@ -529,6 +535,7 @@ order = {
 	" ";
 	"Permissions";
 	"Aliases";
+	"Cameras";
 	" ";
 	"Commands";
 	"Banned";
@@ -580,7 +587,6 @@ order = {
 	"";
 	"SilentCommandDenials";
 	"OverrideChatCallbacks";
-	"ChatCreateRobloxCommands";
 	" ";
 	"BanMessage";
 	"LockMessage";
@@ -593,15 +599,12 @@ order = {
 	"TopBarShift";
 	"DefaultTheme";
 	"ReJail";
-	"DisableRejoinAtMaxPlayers";
 	"";
 	"AutoClean";
 	"AutoCleanDelay";
 	"AutoBackup";
 	" ";
-	"CustomChat";
 	"PlayerList";
-	" ";
 	"Console";
 	"Console_AdminsOnly";
 	" ";

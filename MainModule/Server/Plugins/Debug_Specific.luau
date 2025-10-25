@@ -1,49 +1,47 @@
-
 --// This module is for stuff specific to debugging
 --// Most of this only runs when DebugMode is enabled
 --// NOTE: THIS IS NOT A *CONFIG/USER* PLUGIN! ANYTHING IN THE MAINMODULE PLUGIN FOLDERS IS ALREADY PART OF/LOADED BY THE SCRIPT! DO NOT ADD THEM TO YOUR CONFIG>PLUGINS FOLDER!
 
 return function(Vargs, GetEnv)
-
 	local server = Vargs.Server;
 	local service = Vargs.Service;
 
 	local Settings = server.Settings
 	local Functions, Commands, Admin, Anti, Core, HTTP, Logs, Remote, Process, Variables, Deps =
 		server.Functions, server.Commands, server.Admin, server.Anti, server.Core, server.HTTP, server.Logs, server.Remote, server.Process, server.Variables, server.Deps
-	
+
 	if not Core.DebugMode then -- Nothing in this built-in plugin will be ran in normal environments, it's only ran if DebugMode is enabled.
 		return
 	end
 
-	
-	--[[
-	--// Unfortunately not viable
-	--// TODO: Make this viable perhaps? If done so, expose as a :terminal command
-	Reboot = {
-		Prefix = Settings.Prefix;
-		Commands = {"rebootadonis", "reloadadonis"};
-		Args = {};
-		Description = "Attempts to force Adonis to reload";
-		AdminLevel = "Creators";
-		Function = function(plr: Player, args: {string}, data: {any})
-			local rebootHandler = server.Deps.RebootHandler:Clone();
+	if server.Data and server.Data.NightlyMode then
+		--// Unfortunately not viable
+		--// TODO: Make this viable perhaps? If done so, expose as a :terminal command
+		Commands.Reboot = {
+			Prefix = Settings.Prefix;
+			Commands = {"rebootadonis", "reloadadonis"};
+			Args = {};
+			Description = "Attempts to force Adonis to reload";
+			AdminLevel = "Creators";
+			Function = function(plr: Player, args: {string}, data: {any})
+				local rebootHandler = server.Deps.RebootHandler:Clone();
 
-			if server.Runner then
-				rebootHandler.mParent.Value = service.UnWrap(server.ModelParent);
-				rebootHandler.Runner.Value = service.UnWrap(server.Runner);
-				rebootHandler.Model.Value = service.UnWrap(server.Model);
-				rebootHandler.Mode.Value = "REBOOT";
-				task.wait(0.03)
-				rebootHandler.Parent = service.ServerScriptService;
-				rebootHandler.Disabled = false;
-				task.wait(0.03)
-				server.CleanUp();
-			else
-				error("Unable to reload: Runner missing");
-			end
-		end;
-	};--]]
+				if server.Runner then
+					rebootHandler.mParent.Value = service.UnWrap(server.ModelParent);
+					rebootHandler.Runner.Value = service.UnWrap(server.Runner);
+					rebootHandler.Model.Value = service.UnWrap(server.Model);
+					rebootHandler.Mode.Value = "REBOOT";
+					task.wait(0.03)
+					rebootHandler.Parent = service.ServerScriptService;
+					rebootHandler.Disabled = false;
+					task.wait(0.03)
+					server.CleanUp();
+				else
+					error("Unable to reload: Runner missing");
+				end
+			end;
+		};
+	end
 
 	Commands.DebugUsage = {
 		Prefix = Settings.PlayerPrefix;
@@ -100,7 +98,7 @@ return function(Vargs, GetEnv)
 			end
 
 			table.sort(tab, function(a, b) return a.Text < b.Text end)
-			
+
 			Remote.MakeGui(plr, "List", {
 				Title = `Debug Commands ({cmdCount})`;
 				Table = tab;
@@ -113,6 +111,32 @@ return function(Vargs, GetEnv)
 			})
 		end
 	}
+
+	Commands.TestFilter = {
+		Prefix = Settings.Prefix;
+		Commands = {"testfilter", "filtertest", "tfilter"};
+		Args = {"player", "text"};
+		NoFilter = true;
+		Debug = true;
+		Description = "Test out Roblox's text filtering on a player";
+		AdminLevel = "Moderators";
+		Function = function(plr: Player, args: {string})
+			assert(args[1], "Missing player name")
+			assert(args[2], "Missing text to filter")
+			local temp = {{Text=`Original: {args[2]}`, Desc = args[2]}}
+			if service.RunService:IsStudio() then
+				table.insert(temp, {Text="!! The string has not been filtered !!", Desc="Text filtering does not work in studio"})
+			end
+			for _, v in service.GetPlayers(plr, args[1]) do
+				table.insert(temp, {Text = `-- {v.DisplayName} --`, Desc = `{v.UserId} ({v.Name})`})
+				table.insert(temp, {Text = `ChatForUser: {service.TextService:FilterStringAsync(args[2], v.UserId):GetChatForUserAsync(v.UserId)}`})
+				table.insert(temp, {Text = `NonChatForBroadcast: {service.TextService:FilterStringAsync(args[2], v.UserId):GetNonChatStringForBroadcastAsync()}`})
+				table.insert(temp, {Text = `NonChatForUser: {service.TextService:FilterStringAsync(args[2], v.UserId):GetNonChatStringForUserAsync(v.UserId)}`})
+
+			end
+			Remote.MakeGui(plr, "List", {Title = "Filtering Results", Tab = temp})
+		end
+	};
 
 	Commands.GetDebugAdonisEnvScript = {
 		Prefix = Settings.Prefix;
@@ -127,25 +151,18 @@ return function(Vargs, GetEnv)
 			local ScriptSrcTxt = ""
 			Remote.MakeGui(plr, "Notepad", {
 				Text = [[-- Made by your friendly moo1210, to make debugging the adonis env not a pain. :)
-
-local IsRunningInSameScriptIdentity = false -- If you're running as a normal user-space script (aka the script identity is 2 when you use printidentity), you may toggle this to true, to prevent needing to wrap instances. This may prevent any minor incompatiblies caused by the wrapping logic, if any. This will not work in the command bar, run script button, or plugins.
+local IS_RUNNING_IN_SAME_SCRIPT_IDENTITY = false -- If you're running as a normal user-space script (aka the script identity is 2 when you use printidentity), you may toggle this to true, to prevent needing to wrap instances. This may prevent any minor incompatiblies caused by the wrapping logic, if any. This will not work in the command bar, run script button, or plugins.
 
 ----
-local DebugApiBindable = IsRunningInSameScriptIdentity and nil or game:GetService("ReplicatedStorage"):WaitForChild("Adonis_Debug_API", 15)
-if not DebugApiBindable then
-	error("Adonis Debug API not found within 15 seconds! Is DebugMode enabled?")
-end
+local DebugApiBindable = assert(IS_RUNNING_IN_SAME_SCRIPT_IDENTITY and nil or game:GetService("ReplicatedStorage"):WaitForChild("Adonis_Debug_API", 15), "Adonis Debug API not found within 15 seconds! Is DebugMode enabled?")
 local DebugApi
-if IsRunningInSameScriptIdentity then
+if IS_RUNNING_IN_SAME_SCRIPT_IDENTITY then
 	pcall(function()
 	   DebugApi = _G.Adonis.Debug
 	end)
 	if not DebugApi then
-		warn("The IsRunningInSameScriptIdentity option is enabled, however _G.Adonis.Debug was unable to be accessed. Is DebugMode and the _G API enabled? Falling back to BindableEvent")
-		DebugApiBindable = game:GetService("ReplicatedStorage"):WaitForChild("Adonis_Debug_API", 15)
-		if not DebugApiBindable then
-			error("Adonis Debug API not found within 15 seconds! Is DebugMode enabled?")
-		end
+		warn("The IS_RUNNING_IN_SAME_SCRIPT_IDENTITY option is enabled, however _G.Adonis.Debug was unable to be accessed. Is DebugMode and the _G API enabled? Falling back to BindableEvent")
+		DebugApiBindable = assert(game:GetService("ReplicatedStorage"):WaitForChild("Adonis_Debug_API", 15), "Adonis Debug API not found within 15 seconds! Is DebugMode enabled?")
 		DebugApi = DebugApiBindable:Invoke("GetApi")
 	end
 else
@@ -161,7 +178,7 @@ function WrapAdonisEnv(toWrap, chain)
 		local wrapped = newproxy(true)
 		local wrappedMeta = getmetatable(wrapped)
 		local existingMeta = DebugApiBindable:Invoke("GetEnvTableMeta", chain:sub(1, #chain - 3))
-		local existingMetaClone 
+		local existingMetaClone
 		if existingMeta == nil then
 			existingMeta = {}
 		elseif type(existingMeta) == "string" then
@@ -175,17 +192,17 @@ function WrapAdonisEnv(toWrap, chain)
 				return toWrap
 			elseif type(toWrap[k]) == "function" then
 				return function(...)
-					local args = {...}
-					local unwrappedArgs = {}
-					
-					for i,arg in ipairs(args) do
-						if arg.GetObject then
+					local args = table.pack(...)
+					local unwrappedArgs = table.create(args.n)
+
+					for i, arg in args do
+						if (type(arg) == "table" or type(arg) == "userdata") and arg.GetObject then
 							unwrappedArgs[i] = arg.GetObject
 						else
 							unwrappedArgs[i] = arg
 						end
 					end
-					print(unwrappedArgs)
+					--print(unwrappedArgs)
 					DebugApiBindable:Invoke("RunEnvFunc", tonumber(chain) and chain or curChain:sub(1, #curChain - 3), table.unpack(unwrappedArgs))
 				end
 			else
@@ -215,7 +232,7 @@ local wrappedEnv = DebugApiBindable == nil and DebugApi.Env or WrapAdonisEnv(Deb
 local server = wrappedEnv.Server
 local client = wrappedEnv.Client
 local service = wrappedEnv.Service
----- Your code with access to the Adonis Env below! Both server/client supported depending on which type of script your running				
+---- Your code with access to the Adonis Env below! Both server/client supported depending on which type of script your running
 ]],
 				ReadOnly = true,
 				AutoSelectAll = true
@@ -231,7 +248,7 @@ local service = wrappedEnv.Service
 		Hidden = true;
 		Debug = true;
 		NoFilter = true;
-		AdminLevel = "Creators";
+		AdminLevel = "Players";
 		Function = function(plr: Player, args: {string})
 			--assert(args[1] and args[2],"Argument missing or nil")
 			Remote.Send(plr, "TestError")
@@ -253,7 +270,7 @@ local service = wrappedEnv.Service
 		Description = "Test Big List";
 		Hidden = true;
 		Debug = true;
-		AdminLevel = "Creators";
+		AdminLevel = "Admins";
 		Function = function(plr: Player, args: {string})
 			local list = {}
 
@@ -296,7 +313,6 @@ local service = wrappedEnv.Service
 		Debug = true;
 		AdminLevel = "Creators";
 		Function = function(plr: Player, args: {string})
-
 			print(Remote.Get(plr,"Test"))
 
 			local tab = {
@@ -323,12 +339,12 @@ local service = wrappedEnv.Service
 			Remote.MakeGui(plr, "Settings", {
 				IsOwner = true
 			})
-			
+
 			local RemoteTime;
-			
+
 			local testColor = Remote.GetGui(plr, "ColorPicker", {Color = Color3.new(1, 1, 1)})
 			print(testColor)
-			
+
 			local ans,event = Remote.GetGui(plr, "YesNoPrompt", {
 				Icon = server.MatIcons["Bug report"];
 				Question = "Is this a test question?";
@@ -340,21 +356,20 @@ local service = wrappedEnv.Service
 			print(`PLAYER ANSWER: {ans}`)
 
 			task.wait(0.5)
-			
-			print("RemoteEvent Sending..")
-			
-			RemoteTime = os.clock();
-			
-			Remote.Send(plr, "TestEvent", "TestEvent", "hi mom I went thru the interwebs")
-			
-			print("RemoteEvent Fired successfully")
 
+			print("RemoteEvent Sending..")
+
+			RemoteTime = os.clock();
+
+			Remote.Send(plr, "TestEvent", "TestEvent", "hi mom I went thru the interwebs")
+
+			print("RemoteEvent Fired successfully")
 		end;
 	};
 
 	Commands.DebugLoadstring = {
 		Prefix = Settings.Prefix;
-		Commands = {"debugloadstring";};
+		Commands = {"debugloadstring"};
 		Args = {"code";};
 		Description = "DEBUG LOADSTRING";
 		Hidden = true;
@@ -387,10 +402,48 @@ local service = wrappedEnv.Service
 		Args = {"player", "action", "info"};
 		Description = "Allows you to make a mock anti cheat detection";
 		Hidden = true;
-		AdminLevel = "Creators";
+		Debug = true;
+		NoFilter = true;
+		AdminLevel = "HeadAdmins";
 		Function = function(plr: Player, args: {string})
-			for _, v in service.GetPlayers(plr, args[1]) do
+			for _, v in service.GetPlayers(plr, args[1], {UseFakePlayer = true}) do
 				Anti.Detected(v, table.unpack(args, 2))
+			end
+		end
+	};
+
+	Commands.DebugDonor = {
+		Prefix = Settings.Prefix;
+		Commands = {"debugdonor", "debugadddonor", "debugsetdonor", "debuggetdoor"};
+		Args = {"player", "useids"};
+		Description = "Allows you to temporarily add donors";
+		Hidden = true;
+		Debug = true;
+		NoFilter = true;
+		AdminLevel = "Moderators";
+		Function = function(plr: Player, args: {string})
+			local useIds = args[2] and string.lower(args[2]) == "true"
+
+			for _, v in useIds and string.split(args[1], ",") or service.GetPlayers(plr, args[1]) do
+				Variables.CachedDonors[tostring(not useIds and v.UserId or tonumber(v))] = os.time()
+			end
+		end
+	};
+
+	Commands.DebugRemoveDonor = {
+		Prefix = Settings.Prefix;
+		Commands = {"debugremovedonor", "debugdeletedonor", "debugunsetdonor", "debugantidonor"};
+		Args = {"player", "useids"};
+		Description = "Allows you to temporarily remove donors";
+		Hidden = true;
+		Debug = true;
+		NoFilter = true;
+		AdminLevel = "Moderators";
+		Function = function(plr: Player, args: {string})
+			local useIds = args[2] and string.lower(args[2]) == "true"
+
+			for _, v in useIds and string.split(args[1], ",") or service.GetPlayers(plr, args[1]) do
+				Variables.CachedDonors[tostring(not useIds and v.UserId or tonumber(v))] = nil
 			end
 		end
 	};

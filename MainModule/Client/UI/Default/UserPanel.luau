@@ -25,15 +25,11 @@ local canEditTables = {
 
 local function tabToString(tab)
 	if type(tab) == "table" then
-		local str = ""
+		local str = table.create(#tab)
 		for i, v in tab do
-			if #str > 0 then
-				str ..= "; "
-			end
-
-			str ..= `{i}: {v}`
+			table.insert(str, `{i}: {v}`)
 		end
-		return str
+		return table.concat(str, "; ")
 	else
 		return tostring(tab)
 	end
@@ -153,7 +149,7 @@ return function(data, env)
 				TextColor3 = Color3.new(1, 1, 1);
 				Text = "";
 				PlaceholderText = "Search";
-				TextStrokeTransparency = 0.8;
+				TextStrokeTransparency = 1;
 			})
 
 			local items = tabWindow:Add("ScrollingFrame", {
@@ -501,7 +497,7 @@ return function(data, env)
 		chatMod = Remote.Get("Setting",{"Prefix","SpecialPrefix","BatchKey","AnyPrefix","DonorCommands","DonorCapes"})
 		settingsData = Remote.Get("AllSettings")
 		Variables.Aliases = playerData.Aliases or {}
-		commandPrefix = chatMod.Prefix
+		commandPrefix = if type(chatMod.Prefix) == "table" then chatMod.Prefix[1] else chatMod.Prefix
 
 		for _, v in loadingIcons do
 			v:Destroy()
@@ -536,9 +532,28 @@ return function(data, env)
 
 			local function updateStatus()
 				dStatus.Text = "Updating..."
-				dStatus.Text = Remote.Get("UpdateDonor", playerData.Donor)
-				task.wait(0.5)
-				dStatus.Text = "Donated"
+
+				if chatMod.DonorCapes and playerData.isDonor then
+					if type(donorData) == "table" and donorData.Cape and type(donorData.Cape) == "table" then
+						if donorData.Enabled and service.Players.LocalPlayer.Character then
+							Functions.NewCape({
+								Color = type(currentColor) == "table" and Color3.new(unpack(currentColor)) or currentColor or "White";
+								Parent = service.Players.LocalPlayer.Character;
+								Material = donorData.Cape.Material or "Neon";
+								--Reflectance = reflect;
+								Decal = donorData.Cape.Image;
+							})
+						elseif service.Players.LocalPlayer.Character then
+							Functions.RemoveCape(service.Players.LocalPlayer.Character)
+						end
+					end
+				end
+
+				task.defer(function()
+					dStatus.Text = Remote.Get("UpdateDonor", playerData.Donor)
+					task.wait(0.5)
+					dStatus.Text = "Donated"
+				end)
 			end
 
 			donorTab:Add("TextLabel", {
@@ -684,7 +699,7 @@ return function(data, env)
 
 								local img = pWindow:Add("ImageLabel", {
 									BackgroundTransparency = 1;
-									Image = `rbxassetid://{Functions.GetTexture(currentTexture)}`;
+									Image = `rbxthumb://type=Asset&id={currentTexture}&w=420&h=420`;
 									Size = UDim2.new(1, -10, 1, -80);
 									Position = UDim2.new(0, 5, 0, 35);
 								})
@@ -704,7 +719,7 @@ return function(data, env)
 												local num = tonumber(text)
 												if num then
 													lastValid = num
-													img.Image = `rbxassetid://{Functions.GetTexture(num)}`;
+													img.Image = `rbxthumb://type=Asset&id={num}&w=420&h=420`;
 												else
 													new.Text = lastValid
 												end
@@ -882,7 +897,7 @@ return function(data, env)
 				TextColor3 = Color3.new(1, 1, 1);
 				Text = "";
 				PlaceholderText = "Search";
-				TextStrokeTransparency = 0.8;
+				TextStrokeTransparency = 1;
 			})
 
 			local function getBinds()
@@ -1037,9 +1052,9 @@ return function(data, env)
 					doneKey = false
 					button.Text = "Waiting..."
 					Variables.WaitingForBind = true
-					keyInputHandler = window:BindEvent(service.UserInputService.InputBegan, function(InputObject)
+					keyInputHandler = window:BindEvent(service.UserInputService.InputBegan, function(InputObject, gameProcessedEvent)
 						local textbox = service.UserInputService:GetFocusedTextBox()
-						if not (textbox) and not doneKey and rawequal(InputObject.UserInputType, Enum.UserInputType.Keyboard) then
+						if not (textbox) and not gameProcessedEvent and not doneKey and rawequal(InputObject.UserInputType, Enum.UserInputType.Keyboard) then
 							currentKey = InputObject.KeyCode
 							if currentKey then
 								button.Text = string.upper(keyCodeToName(currentKey.Value))
@@ -1144,7 +1159,7 @@ return function(data, env)
 				TextColor3 = Color3.new(1, 1, 1);
 				Text = "";
 				PlaceholderText = "Search";
-				TextStrokeTransparency = 0.8;
+				TextStrokeTransparency = 1;
 			})
 
 			local aliases = aliasTab:Add("ScrollingFrame", {
@@ -1475,6 +1490,19 @@ return function(data, env)
 					end
 				};--]]
 				{
+					Text = "Keep Window Width on Minimize: ";
+					Desc = "- Preserves window width when minimizing instead of resizing to fixed width";
+					Entry = "Boolean";
+					Value = Variables.KeepWindowWidthOnMinimize or false;
+					Function = function(enabled, toggle)
+						Variables.KeepWindowWidthOnMinimize = enabled
+						local text = toggle.Text
+						toggle.Text = "Saving.."
+						Remote.Get("UpdateClient","KeepWindowWidthOnMinimize",enabled)
+						toggle.Text = text
+					end
+				};
+				{
 					Text = "Console Key: ";
 					Desc = "- Key used to open the console";
 					Entry = "Keybind";
@@ -1483,9 +1511,9 @@ return function(data, env)
 						service.Debounce("CliSettingKeybinder", function()
 							local gotKey, visualName
 							toggle.Text = "Waiting..."
-							local event = service.UserInputService.InputBegan:Connect(function(InputObject)
+							local event = service.UserInputService.InputBegan:Connect(function(InputObject, gameProcessedEvent)
 								local textbox = service.UserInputService:GetFocusedTextBox()
-								if not (textbox) and rawequal(InputObject.UserInputType, Enum.UserInputType.Keyboard) then
+								if not (textbox) and not gameProcessedEvent and rawequal(InputObject.UserInputType, Enum.UserInputType.Keyboard) then
 									gotKey, visualName = InputObject.KeyCode.Name, Functions.KeyCodeToName(InputObject.KeyCode.Value)
 								end
 							end)
@@ -1612,7 +1640,31 @@ return function(data, env)
 							Position = UDim2.new(1, -100, 0, 0);
 							BackgroundTransparency = 1;
 							OnClick = function()
-								Remote.Send("ClearSavedSettings")
+								if
+									UI.MakeGui("YesNoPrompt", {
+										Title = "Are you sure?";
+										Question = "You are about to clear ALL of your saved settings, this action is IRREVERSIBLE!";
+									}) == "Yes"
+								then
+									if
+										UI.MakeGui("TextPrompt", {
+											Title = "No taksies backsies";
+											PlaceholderText = "I ACKNOWLEDGE";
+											Question = "Input 'I ACKNOWLEDGE' to proceed.";
+											Size = {325, 150}
+										}) == "I ACKNOWLEDGE"
+									then
+										Remote.Send("ClearSavedSettings")
+										UI.Make("Hint",{
+											Message = "Saved settings have been cleared."
+										})
+										return
+									end
+								end
+
+								UI.Make("Hint",{
+									Message = "Operation cancelled, all of your data is safe!"
+								})
 							end
 						}
 					}

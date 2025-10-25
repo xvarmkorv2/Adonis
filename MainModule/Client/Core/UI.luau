@@ -42,7 +42,7 @@ return function(Vargs, GetEnv)
 	local GetEnv = env.GetEnv
 
 	local Anti, Core, Functions, Process, Remote, UI, Variables, Deps
-	local CloneTable, TrackTask
+	local TrackTask
 	local function Init()
 		UI = client.UI;
 		Anti = client.Anti;
@@ -53,46 +53,22 @@ return function(Vargs, GetEnv)
 		Remote = client.Remote;
 		Deps = client.Deps;
 
-		CloneTable = service.CloneTable;
 		TrackTask = service.TrackTask;
 
 		UI.Init = nil;
 	end
 
 	local function RunLast()
-		--[[client = service.ReadOnly(client, {
-				[client.Variables] = true;
-				[client.Handlers] = true;
-				G_API = true;
-				G_Access = true;
-				G_Access_Key = true;
-				G_Access_Perms = true;
-				Allowed_API_Calls = true;
-				HelpButtonImage = true;
-				Finish_Loading = true;
-				RemoteEvent = true;
-				ScriptCache = true;
-				Returns = true;
-				PendingReturns = true;
-				EncodeCache = true;
-				DecodeCache = true;
-				Received = true;
-				Sent = true;
-				Service = true;
-				Holder = true;
-				GUIs = true;
-				LastUpdate = true;
-				RateLimits = true;
-
-				Init = true;
-				RunLast = true;
-				RunAfterInit = true;
-				RunAfterLoaded = true;
-				RunAfterPlugins = true;
-			}, true)--]]
 		UI.DefaultTheme = Remote.Get("Setting","DefaultTheme");
 		UI.RunLast = nil;
 	end
+
+	local function TruncatedCompare(s1: str, s2: str)
+		local minLength = math.min(string.len(s1), string.len(s2))
+		local s1Truncated = string.sub(s1, 1, minLength)
+		local s2Truncated = string.sub(s2, 1, minLength)
+		return s1Truncated == s2Truncated
+	end 
 
 	getfenv().client = nil
 	getfenv().service = nil
@@ -145,21 +121,35 @@ return function(Vargs, GetEnv)
 
 		LoadModule = function(module, data, env)
 			data = data or {}
+			local function safeTableClone(t) -- TODO: Make RFC on Luau repo to allow table.clone to work with closed metatables
+				local success, result = pcall(table.clone, t)
 
+				if success then
+					return result
+				else
+					local newT = setmetatable({}, {__index = function(_, k) return t[k] end})
+
+					for k, v in t do
+						newT[k] = v
+					end
+
+					return newT
+				end
+			end
 			local ran, func = pcall(require, module)
 			local newEnv = GetEnv(env, {
 				script = module,
-				client = CloneTable(client),
-				service = CloneTable(service)
+				client = safeTableClone(client),
+				service = safeTableClone(service)
 			})
 
 			if newEnv.service.Threads then
-				newEnv.service.Threads = CloneTable(service.Threads)
+				newEnv.service.Threads = table.clone(service.Threads)
 			end
 
 			for i,v in newEnv.client do
 				if type(v) == "table" and i ~= "Variables" and i ~= "Handlers" then
-					newEnv.client[i] = CloneTable(v)
+					newEnv.client[i] = safeTableClone(v)
 				end
 			end
 
@@ -195,7 +185,6 @@ return function(Vargs, GetEnv)
 		GetNew = function(theme, name)
 			local foundConfigs = {}
 			local endConfig = {}
-			local endConfValues = {}
 
 			local confFolder = Instance.new("Folder")
 			local debounce = false
@@ -207,7 +196,7 @@ return function(Vargs, GetEnv)
 				if folder then
 					local baseValue = folder:FindFirstChild("Base_Theme")
 					local baseTheme = baseValue and baseValue.Value
-					local foundGUI = folder:FindFirstChild(name) --local foundGUI = (baseValue and folder:FindFirstChild(name)) or UIFolder.Default:FindFirstChild(name)
+					local foundGUI = folder:FindFirstChild(name)
 
 					if foundGUI then
 						local config = foundGUI:FindFirstChild("Config")
@@ -271,8 +260,16 @@ return function(Vargs, GetEnv)
 				end
 
 				--// Get rid of an old Config folder and throw the new combination Config folder in
-				local new = foundConfigs[1].Found:Clone()
+				local found = foundConfigs[1].Found
+				local new = found:Clone()
 				local oldFolder = new:FindFirstChild'Config'
+
+				-- Keep a reference to the original element in case the script relies on a dependancy
+				-- found in the UI theme's directory
+				local originalReferenceValue = Instance.new("ObjectValue")
+				originalReferenceValue.Value = found
+				originalReferenceValue.Name = "OriginalReference"
+				originalReferenceValue.Parent = new
 
 				if oldFolder then oldFolder:Destroy() end
 
@@ -319,7 +316,6 @@ return function(Vargs, GetEnv)
 					end
 
 					local mult = foundConf.AllowMultiple
-					--local keep = foundConf.CanKeepAlive
 
 					local allowMult = mult and mult.Value or true
 					local found, num = UI.Get(name)
@@ -342,7 +338,7 @@ return function(Vargs, GetEnv)
 
 							local ran, ret = rets[1], rets[2]
 							if ret ~= nil then
-								if type(ret) == "userdata" and Anti.GetClassName(ret) == "ScreenGui" then
+								if type(ret) == "userdata" and ret:IsA("ScreenGui") then
 									code = (ret:FindFirstChild("Config") and (ret.Config:FindFirstChild("Code") or ret.Config:FindFirstChild("NoEnv-Code"))) or code
 
 									if not data.NoEnv and code then
@@ -423,14 +419,10 @@ return function(Vargs, GetEnv)
 		end;
 
 		Remove = function(name, ignore)
-			if name == "Chat" and client.Handlers.RemoveCustomChat then
-				client.Handlers.RemoveCustomChat()
-			else
-				local gui = UI.Get(name, ignore)
-				if gui then
-					for i,v in gui do
-						v.Destroy()
-					end
+			local gui = UI.Get(name, ignore)
+			if gui then
+				for i,v in gui do
+					v.Destroy()
 				end
 			end
 		end;
@@ -561,7 +553,23 @@ return function(Vargs, GetEnv)
 			gTable:Register(gui)
 
 			return gTable,gIndex
-		end
+		end;
+
+		Autocomplete = function(provided: string, arg: string)
+			local matches = {}
+			if not provided or not arg then
+				return matches
+			end
+
+			for _, player in service.Players:GetPlayers() do
+				local name = player.Name
+				if provided == "$" or TruncatedCompare(string.lower(name), string.lower(provided)) then
+					table.insert(matches, name)
+				end
+			end
+
+			return matches
+		end;
 	}
 
 	client.UI.RegisterGui = client.UI.Register

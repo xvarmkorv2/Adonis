@@ -37,6 +37,7 @@ return function(Vargs, GetEnv)
 	local service = Vargs.Service
 	local client = Vargs.Client
 	local Anti, Core, Functions, Process, Remote, UI, Variables
+	local t
 	local function Init(data)
 		UI = client.UI;
 		Anti = client.Anti;
@@ -45,6 +46,8 @@ return function(Vargs, GetEnv)
 		Functions = client.Functions;
 		Process = client.Process;
 		Remote = client.Remote;
+
+		t = client.Typechecker;
 
 		Core.Name = "\0"
 		Core.Special = client.DepsName
@@ -71,37 +74,6 @@ return function(Vargs, GetEnv)
 			service.TrackTask("Thread: API Manager", Core.StartAPI)
 			--service.Threads.RunTask("_G API Manager",client.Core.StartAPI)
 		end
-
-		--[[client = service.ReadOnly(client, {
-				[client.Variables] = true;
-				[client.Handlers] = true;
-				G_API = true;
-				G_Access = true;
-				G_Access_Key = true;
-				G_Access_Perms = true;
-				Allowed_API_Calls = true;
-				HelpButtonImage = true;
-				Finish_Loading = true;
-				RemoteEvent = true;
-				ScriptCache = true;
-				Returns = true;
-				PendingReturns = true;
-				EncodeCache = true;
-				DecodeCache = true;
-				Received = true;
-				Sent = true;
-				Service = true;
-				Holder = true;
-				GUIs = true;
-				LastUpdate = true;
-				RateLimits = true;
-
-				Init = true;
-				RunLast = true;
-				RunAfterInit = true;
-				RunAfterLoaded = true;
-				RunAfterPlugins = true;
-		}, true)--]]
 
 		Core.RunLast = nil
 	end
@@ -209,8 +181,8 @@ return function(Vargs, GetEnv)
 			local StartLoop = service.StartLoop
 			local ReadOnly = service.ReadOnly
 			local UnWrap = service.UnWrap
-			local service = nil
-			local client = nil
+			local service = service
+			local client = client
 			local _G = _G
 			local setmetatable = setmetatable
 			local type = type
@@ -248,9 +220,11 @@ return function(Vargs, GetEnv)
 			}
 
 			local API = {
-				Access = ReadOnly({}, nil, nil, true);
-				--[[
 				Access = service.MetaFunc(function(...)
+					if not Variables.G_Access_Key then
+						return
+					end
+
 					local args = {...}
 					local key = args[1]
 					local ind = args[2]
@@ -264,36 +238,33 @@ return function(Vargs, GetEnv)
 						targ = client[ind]
 					end
 
-					if client.G_Access and key == client.G_Access_Key and targ and client.Allowed_API_Calls[ind] then
-						if type(targ) == "table" then
-							return service.NewProxy {
-								__index = function(tab,inde)
-									if targ[inde] ~= nil and API_Special[inde] == nil or API_Special[inde] == true then
-										if targ[inde]~=nil and type(targ[inde]) == "table" and client.G_Access_Perms == "Read" then
-											return service.ReadOnly(targ[inde])
-										else
-											return targ[inde]
-										end
-									elseif API_Special[inde] == false then
-										error(`Access Denied: {inde}`)
+					assert(client.G_Access and (type(key) == "string" and Functions.SHA256(key..game.GameId) == Variables.G_Access_Key) and targ and client.Allowed_API_Calls[ind], "Incorrect key or G_Access is disabled")
+
+					if type(targ) == "table" then
+						return service.NewProxy {
+							__index = function(tab, inde)
+								if targ[inde] ~= nil and API_Special[inde] == nil or API_Special[inde] == true then
+									if targ[inde] ~= nil and type(targ[inde]) == "table" and client.G_Access_Perms == "Read" then
+										return service.ReadOnly(targ[inde])
 									else
-										error(`Could not find {inde}`)
+										return targ[inde]
 									end
-								end;
-								__newindex = function(tabl,inde,valu)
-									error("Read-only")
-								end;
-								__metatable = true;
-							}
-						end
-					else
-						error("Incorrect key or G_Access is disabled")
+								elseif API_Special[inde] == false then
+									error(`Access Denied: {inde}`)
+								else
+									error(`Could not find {inde}`)
+								end
+							end;
+							__newindex = function(tabl, inde, valu)
+								error("Read-only")
+							end;
+							__metatable = true;
+						}
 					end
-				end);
-				--]]
+				end, true, { t.string, t.string });
 
 				Scripts = ReadOnly({
-					ExecutePermission = (function(srcScript, code)
+					ExecutePermission = MetaFunc(function(srcScript, code)
 						local exists;
 
 						for i,v in ScriptCache do
@@ -326,7 +297,7 @@ return function(Vargs, GetEnv)
 							end
 							return data.Source, module
 						end
-					end);
+					end, true, { t.instanceOf("LocalScript"), t.string });
 				}, nil, nil, true);
 			}
 
@@ -349,17 +320,17 @@ return function(Vargs, GetEnv)
 						end
 						return RealEnvResult, false
 					end
-				end	
+				end
 
 				local AdonisDebugAPIBindable = ReplicatedStorage:FindFirstChild("Adonis_Debug_API")
 				if AdonisDebugAPIBindable then
-					AdonisDebugAPIBindable.OnInvoke = function(DebugCommand,...)
-						local args = {...}
+					AdonisDebugAPIBindable.OnInvoke = function(DebugCommand, ...)
+						local args = table.unpack(...)
 						if DebugCommand == "RunEnvFunc" then
 							local FunctionInEnvToRunPath = args[1]
 							if FunctionInEnvToRunPath and type(FunctionInEnvToRunPath) == "string" then
 								local realEnvResult, isResultPointer = getRealEnvResult(FunctionInEnvToRunPath)
-								return realEnvResult(table.unpack(args,2,#args))
+								return realEnvResult(table.unpack(args, 2, args.n))
 							end
 						elseif DebugCommand == "GetEnvTableMeta" then
 							local TableInEnvPath = args[1]
@@ -373,8 +344,8 @@ return function(Vargs, GetEnv)
 							if TableInEnvPath and type(TableInEnvPath) == "string" then
 								local realEnvResult, isResultPointer = getRealEnvResult(TableInEnvPath)
 								local metaTableInEnv = getmetatable(realEnvResult)
-								local result = metaTableInEnv[FuncToRun](realEnvResult,table.unpack(args,3,#args))
-								local resultPointer = tostring(math.random())
+								local result = metaTableInEnv[FuncToRun](realEnvResult,table.unpack(args, 3, args.n))
+								local resultPointer = service.HttpService:GenerateGUID(false)
 								pointers[resultPointer] = result
 
 								return UnWrap(result), resultPointer
@@ -407,11 +378,11 @@ return function(Vargs, GetEnv)
 			})
 
 			if not rawget(_G, "Adonis") then
-				if table.isfrozen and not table.isfrozen(_G) or not table.isfrozen then
+				if not table.isfrozen(_G) then
 					rawset(_G, "Adonis", AdonisGTable)
 					StartLoop("APICheck", 1, function()
 						if rawget(_G, "Adonis") ~= AdonisGTable then
-							if table.isfrozen and not table.isfrozen(_G) or not table.isfrozen then
+							if not table.isfrozen(_G) then
 								rawset(_G, "Adonis", AdonisGTable)
 							else
 								warn("⚠️ ADONIS CRITICAL WARNING! MALICIOUS CODE IS TRYING TO CHANGE THE ADONIS _G API AND IT CAN'T BE SET BACK! PLEASE SHUTDOWN THE SERVER AND REMOVE THE MALICIOUS CODE IF POSSIBLE! 0x02412")
