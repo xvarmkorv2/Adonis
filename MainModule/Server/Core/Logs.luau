@@ -88,6 +88,17 @@ return function(Vargs, GetEnv)
 				log.Time = os.time()
 			end
 
+			local p = log.Player
+			if p and type(p) ~= "table" then
+				local pData = Core.PlayerData[tostring(p.UserId)]
+				local UserInfo = pData and pData.UserInfo or { Name = p.Name, UserId = p.UserId }
+				if pData and not pData.UserInfo then
+					pData.UserInfo = UserInfo
+				end
+
+				log.Player = UserInfo
+			end
+
 			if tab then
 				if tab.__meta == "DLL" then
 					tab:AddToStartAndRemoveEndIfEnd(log, Logs.MaxLogs)
@@ -97,7 +108,7 @@ return function(Vargs, GetEnv)
 						table.remove(tab, #tab)
 					end
 				end
-				
+
 				service.Events.LogAdded:Fire(Logs.TabToType(tab), log, tab)
 			end
 		end;
@@ -109,6 +120,8 @@ return function(Vargs, GetEnv)
 
 				if string.sub(data, 1, 2) == "\x1f\x8b" then -- Check for Gzip header and decode
 					data = assert(Functions.GzipDecompress, "No support for Gzip encoding!")(data)
+				elseif string.sub(data, 1, 2) == "\x28\xB5\x2F\xFD" then -- Check for Zstd header and decode
+					data = assert(Functions.ZstdDecompress, "No support for Zstandard encoding!")(data)
 				elseif string.match(data, "^\x78[\x01\x5e\x9c\xda\x20\x7d\xbb\xf9]") then -- Check for Zlib header and decode
 					data = assert(Functions.ZlibDecompress, "No support for Zlib encoding!")(data)
 				end
@@ -153,7 +166,7 @@ return function(Vargs, GetEnv)
 					local newTab = if isTable then table.clone(log) else log
 
 					if (isTable and not log.NoSave) or not isTable then
-						if isTable and log.Player then
+						if isTable and log.Player and type(log.Player) ~= "table" then
 							local p = log.Player
 							log.Player = {
 								Name = p.Name;
